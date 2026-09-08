@@ -2,7 +2,7 @@
 
 中国古代玄幻（莽荒）捉宠放置游戏。TapTap 竖屏买断单机（决策见 `docs/01-游戏整体框架设计.md` 第 19 章）。
 
-本仓库当前为 **Phase 0 垂直切片**：导表管线 + headless 确定性战斗引擎 + 数值校验测试，全部可运行，不依赖游戏引擎（后续 Cocos 视图层按 `docs/07-技术架构.md` 接入本引擎）。
+本仓库当前为 **Phase 0 垂直切片**：导表管线 + headless 确定性战斗引擎 + 数值校验测试，全部可运行。客户端引擎已定为 **Godot 4.7.1**（`docs/13-Godot4.7引擎开发方案.md`），本 TS 引擎保留为**数值验收基准**，与 Godot 版做同种子对拍。
 
 ## 快速开始
 
@@ -47,4 +47,4 @@ out/             导出产物（JSON 配置 / types.d.ts / report.md 平衡报�
 - [ ] 装备掉落 roll（DropRule 已有表，缺 roll 器与未鉴定封装）
 - [ ] 村落生产 tick（Crop/Recipe 半成品表，体力心情模型）
 - [ ] 存档结构与迁移链（SaveService）
-- [ ] Cocos Creator 工程接入（View 层包装本引擎）
+- [ ] Godot 4.7.1 工程接入（按 docs/13：工程骨架→stats.gd→battle 移植→对拍→最简演出）
