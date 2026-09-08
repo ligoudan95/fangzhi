@@ -1,0 +1,130 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # TS 数值验收基准（docs/13 §6）：导表 + 15 项测试，必须全绿
+  ts:
+    name: TS export + tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Export tables
+        run: npm run export
+      - name: Run tests
+        run: npm test
+
+  # GDScript 侧 lint：分层依赖方向 + gdformat/gdlint（D14 起强制阻断）
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install gdtoolkit
+        run: pip install "gdtoolkit==4.*"
+      - name: Dependency direction check
+        shell: pwsh
+        run: pwsh -NoProfile -File tools/dep_check.ps1
+      - name: gdformat check
+        run: gdformat --check scripts tests
+      - name: gdlint
+        run: gdlint scripts tests
+
+  # GdUnit4 单测（docs/13 §12）：28 项（15 项 TS 断言口径平移 + 加强项），D14 起强制阻断
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run GdUnit4 tests
+        env:
+          GODOT_DOWNLOAD_URL: "https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip"
+        run: |
+          ./addons/gdUnit4/runtest.sh -a tests/ -gd "$GODOT_DOWNLOAD_URL" --ignoreHeadlessMode
+
+  # 引擎对拍（docs/13 §6）：TS 基准生成期望日志，GDScript 同种子逐行 diff——阻塞级
+  parity:
+    name: Engine parity (TS vs GDScript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Generate expected logs (TS engine)
+        run: npm run parity
+      - name: Download Godot headless
+        run: |
+          curl -L -o godot.zip "https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip"
+          unzip godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+      - name: Run GDScript parity
+        run: |
+          ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . --import
+          ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . -s res://tests/parity_runner.gd
+
+  # Android APK（docs/13 §11）：debug 签名出包 → artifact，供真机竖屏验证安装
+  # 真机验证清单通过后去掉 continue-on-error 转强制
+  android-apk:
+    name: Android APK (debug artifact)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Download Godot
+        run: |
+          curl -L -o godot.zip "https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip"
+          unzip godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+      - name: Cache export templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates/4.7.1.stable
+          key: godot-export-templates-4.7.1-stable
+      - name: Install export templates
+        run: |
+          if [ ! -f ~/.local/share/godot/export_templates/4.7.1.stable/android_release.apk ]; then
+            curl -L -o templates.tpz "https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_export_templates.tpz"
+            mkdir -p ~/.local/share/godot/export_templates/4.7.1.stable
+            unzip -q templates.tpz -d _tpl
+            mv _tpl/templates/* ~/.local/share/godot/export_templates/4.7.1.stable/
+          fi
+      - name: Import project
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . --import
+      - name: Create debug keystore
+        run: |
+          keytool -genkeypair -keystore debug.keystore -alias androiddebugkey \
+            -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 9999 \
+            -dname "CN=Android Debug,O=Android,C=US"
+      - name: Write Godot editor settings (Android SDK + keystore)
+        run: |
+          mkdir -p ~/.local/share/godot
+          cat > ~/.local/share/godot/editor_settings-4.7.tres <<'EOF'
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "/usr/local/lib/android/sdk"
+          export/android/debug_keystore = "${{ github.workspace }}/debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
+      - name: Export debug APK
+        run: |
+          ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . \
+            --export-debug "Android" build/android/fangzhi-debug.apk
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fangzhi-debug-apk
+          path: build/android/fangzhi-debug.apk
