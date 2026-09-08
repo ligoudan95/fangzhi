@@ -1,0 +1,112 @@
+[
+ {
+  "questId": 1,
+  "chapterId": 0,
+  "order": 1,
+  "nodeType": 1,
+  "title": "兽潮之夜",
+  "goalType": 0,
+  "targetId": 0,
+  "count": 0,
+  "rewardXiu": 200
+ },
+ {
+  "questId": 2,
+  "chapterId": 0,
+  "order": 2,
+  "nodeType": 2,
+  "title": "守住第一波",
+  "goalType": 1,
+  "targetId": 1,
+  "count": 1,
+  "rewardXiu": 300
+ },
+ {
+  "questId": 3,
+  "chapterId": 0,
+  "order": 3,
+  "nodeType": 3,
+  "title": "收服第一只",
+  "goalType": 2,
+  "targetId": 0,
+  "count": 1,
+  "rewardXiu": 200
+ },
+ {
+  "questId": 4,
+  "chapterId": 1,
+  "order": 1,
+  "nodeType": 1,
+  "title": "黑风林的低语",
+  "goalType": 0,
+  "targetId": 0,
+  "count": 0,
+  "rewardXiu": 300
+ },
+ {
+  "questId": 5,
+  "chapterId": 1,
+  "order": 2,
+  "nodeType": 2,
+  "title": "藤影清剿",
+  "goalType": 1,
+  "targetId": 2,
+  "count": 1,
+  "rewardXiu": 400
+ },
+ {
+  "questId": 6,
+  "chapterId": 1,
+  "order": 3,
+  "nodeType": 2,
+  "title": "木系图鉴·初",
+  "goalType": 2,
+  "targetId": 2,
+  "count": 3,
+  "rewardXiu": 400
+ },
+ {
+  "questId": 7,
+  "chapterId": 1,
+  "order": 4,
+  "nodeType": 3,
+  "title": "播种时节",
+  "goalType": 5,
+  "targetId": 1,
+  "count": 1,
+  "rewardXiu": 300
+ },
+ {
+  "questId": 8,
+  "chapterId": 1,
+  "order": 5,
+  "nodeType": 2,
+  "title": "雾深处",
+  "goalType": 1,
+  "targetId": 4,
+  "count": 1,
+  "rewardXiu": 500
+ },
+ {
+  "questId": 9,
+  "chapterId": 1,
+  "order": 6,
+  "nodeType": 2,
+  "title": "老藤营地",
+  "goalType": 1,
+  "targetId": 5,
+  "count": 1,
+  "rewardXiu": 600
+ },
+ {
+  "questId": 10,
+  "chapterId": 1,
+  "order": 7,
+  "nodeType": 2,
+  "title": "域主·藤皇",
+  "goalType": 1,
+  "targetId": 6,
+  "count": 1,
+  "rewardXiu": 1000
+ }
+]

@@ -1,0 +1,290 @@
+[
+ {
+  "petId": 1001,
+  "slot": 0,
+  "skillId": 1,
+  "learnLv": 1
+ },
+ {
+  "petId": 1001,
+  "slot": 1,
+  "skillId": 2,
+  "learnLv": 1
+ },
+ {
+  "petId": 1001,
+  "slot": 2,
+  "skillId": 3,
+  "learnLv": 25
+ },
+ {
+  "petId": 1001,
+  "slot": 3,
+  "skillId": 4,
+  "learnLv": 40
+ },
+ {
+  "petId": 1002,
+  "slot": 0,
+  "skillId": 5,
+  "learnLv": 1
+ },
+ {
+  "petId": 1002,
+  "slot": 1,
+  "skillId": 6,
+  "learnLv": 1
+ },
+ {
+  "petId": 1002,
+  "slot": 2,
+  "skillId": 7,
+  "learnLv": 25
+ },
+ {
+  "petId": 1002,
+  "slot": 3,
+  "skillId": 8,
+  "learnLv": 40
+ },
+ {
+  "petId": 1003,
+  "slot": 0,
+  "skillId": 9,
+  "learnLv": 1
+ },
+ {
+  "petId": 1003,
+  "slot": 1,
+  "skillId": 10,
+  "learnLv": 1
+ },
+ {
+  "petId": 1003,
+  "slot": 2,
+  "skillId": 11,
+  "learnLv": 25
+ },
+ {
+  "petId": 1003,
+  "slot": 3,
+  "skillId": 12,
+  "learnLv": 40
+ },
+ {
+  "petId": 1004,
+  "slot": 0,
+  "skillId": 13,
+  "learnLv": 1
+ },
+ {
+  "petId": 1004,
+  "slot": 1,
+  "skillId": 14,
+  "learnLv": 1
+ },
+ {
+  "petId": 1004,
+  "slot": 2,
+  "skillId": 15,
+  "learnLv": 25
+ },
+ {
+  "petId": 1004,
+  "slot": 3,
+  "skillId": 16,
+  "learnLv": 40
+ },
+ {
+  "petId": 1005,
+  "slot": 0,
+  "skillId": 17,
+  "learnLv": 1
+ },
+ {
+  "petId": 1005,
+  "slot": 1,
+  "skillId": 18,
+  "learnLv": 1
+ },
+ {
+  "petId": 1005,
+  "slot": 2,
+  "skillId": 19,
+  "learnLv": 25
+ },
+ {
+  "petId": 1005,
+  "slot": 3,
+  "skillId": 20,
+  "learnLv": 40
+ },
+ {
+  "petId": 1006,
+  "slot": 0,
+  "skillId": 21,
+  "learnLv": 1
+ },
+ {
+  "petId": 1006,
+  "slot": 1,
+  "skillId": 22,
+  "learnLv": 1
+ },
+ {
+  "petId": 1006,
+  "slot": 2,
+  "skillId": 23,
+  "learnLv": 30
+ },
+ {
+  "petId": 1006,
+  "slot": 3,
+  "skillId": 24,
+  "learnLv": 45
+ },
+ {
+  "petId": 1007,
+  "slot": 0,
+  "skillId": 25,
+  "learnLv": 1
+ },
+ {
+  "petId": 1007,
+  "slot": 1,
+  "skillId": 26,
+  "learnLv": 1
+ },
+ {
+  "petId": 1007,
+  "slot": 2,
+  "skillId": 27,
+  "learnLv": 25
+ },
+ {
+  "petId": 1007,
+  "slot": 3,
+  "skillId": 28,
+  "learnLv": 40
+ },
+ {
+  "petId": 1008,
+  "slot": 0,
+  "skillId": 29,
+  "learnLv": 1
+ },
+ {
+  "petId": 1008,
+  "slot": 1,
+  "skillId": 30,
+  "learnLv": 1
+ },
+ {
+  "petId": 1008,
+  "slot": 2,
+  "skillId": 31,
+  "learnLv": 30
+ },
+ {
+  "petId": 1008,
+  "slot": 3,
+  "skillId": 32,
+  "learnLv": 45
+ },
+ {
+  "petId": 1009,
+  "slot": 0,
+  "skillId": 33,
+  "learnLv": 1
+ },
+ {
+  "petId": 1009,
+  "slot": 1,
+  "skillId": 34,
+  "learnLv": 1
+ },
+ {
+  "petId": 1009,
+  "slot": 2,
+  "skillId": 35,
+  "learnLv": 25
+ },
+ {
+  "petId": 1009,
+  "slot": 3,
+  "skillId": 36,
+  "learnLv": 40
+ },
+ {
+  "petId": 1010,
+  "slot": 0,
+  "skillId": 37,
+  "learnLv": 1
+ },
+ {
+  "petId": 1010,
+  "slot": 1,
+  "skillId": 38,
+  "learnLv": 1
+ },
+ {
+  "petId": 1010,
+  "slot": 2,
+  "skillId": 39,
+  "learnLv": 30
+ },
+ {
+  "petId": 1010,
+  "slot": 3,
+  "skillId": 40,
+  "learnLv": 45
+ },
+ {
+  "petId": 1011,
+  "slot": 0,
+  "skillId": 41,
+  "learnLv": 1
+ },
+ {
+  "petId": 1011,
+  "slot": 1,
+  "skillId": 42,
+  "learnLv": 1
+ },
+ {
+  "petId": 1011,
+  "slot": 2,
+  "skillId": 43,
+  "learnLv": 25
+ },
+ {
+  "petId": 1011,
+  "slot": 3,
+  "skillId": 44,
+  "learnLv": 40
+ },
+ {
+  "petId": 1012,
+  "slot": 0,
+  "skillId": 45,
+  "learnLv": 1
+ },
+ {
+  "petId": 1012,
+  "slot": 1,
+  "skillId": 46,
+  "learnLv": 1
+ },
+ {
+  "petId": 1012,
+  "slot": 2,
+  "skillId": 47,
+  "learnLv": 25
+ },
+ {
+  "petId": 1012,
+  "slot": 3,
+  "skillId": 48,
+  "learnLv": 40
+ }
+]

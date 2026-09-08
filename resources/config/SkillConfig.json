@@ -1,0 +1,1244 @@
+[
+ {
+  "skillId": 1,
+  "name": "撕咬",
+  "element": 0,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 30,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 2,
+  "name": "岩壁冲撞",
+  "element": 0,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1.5,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "Taunt",
+    "power": 1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 2,
+  "rageGain": 0,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 3,
+  "name": "碎石践踏",
+  "element": 0,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1.3,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 2,
+    "onSelf": false
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 25,
+  "isUlt": false
+ },
+ {
+  "skillId": 4,
+  "name": "獒镇八方",
+  "element": 0,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 2.4,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "Shield",
+    "power": 1.5,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": true
+   }
+  ],
+  "cd": 0,
+  "rageGain": 0,
+  "learnLv": 40,
+  "isUlt": true
+ },
+ {
+  "skillId": 5,
+  "name": "花瓣弹",
+  "element": 2,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 30,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 6,
+  "name": "桃夭·绽",
+  "element": 0,
+  "selector": "ally_lowest",
+  "effects": [
+   {
+    "type": "Heal",
+    "power": 1.6,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 7,
+  "name": "落英缚",
+  "element": 2,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 0.8,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 9,
+    "duration": 2,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 25,
+  "isUlt": false
+ },
+ {
+  "skillId": 8,
+  "name": "九瓣回春",
+  "element": 2,
+  "selector": "ally_all",
+  "effects": [
+   {
+    "type": "Heal",
+    "power": 1.4,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 17,
+    "duration": 3,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 0,
+  "learnLv": 40,
+  "isUlt": true
+ },
+ {
+  "skillId": 9,
+  "name": "鞭击",
+  "element": 0,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 30,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 10,
+  "name": "缠绕",
+  "element": 2,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 0.9,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 7,
+    "duration": 3,
+    "chance": 0.9,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 11,
+  "name": "藤甲",
+  "element": 0,
+  "selector": "self",
+  "effects": [
+   {
+    "type": "Shield",
+    "power": 1.3,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": true
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 25,
+  "isUlt": false
+ },
+ {
+  "skillId": 12,
+  "name": "老藤囚笼",
+  "element": 2,
+  "selector": "enemy_all",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 1.2,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 7,
+    "duration": 3,
+    "chance": 0.5,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 0,
+  "learnLv": 40,
+  "isUlt": true
+ },
+ {
+  "skillId": 13,
+  "name": "啄击",
+  "element": 0,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 30,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 14,
+  "name": "惊雀鸣",
+  "element": 0,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 8,
+    "duration": 2,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 2,
+  "rageGain": 0,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 15,
+  "name": "羽刃风暴",
+  "element": 2,
+  "selector": "enemy_all",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 1.2,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 25,
+  "isUlt": false
+ },
+ {
+  "skillId": 16,
+  "name": "千羽穿云",
+  "element": 2,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 2,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 16,
+    "duration": 2,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": true
+   }
+  ],
+  "cd": 0,
+  "rageGain": 0,
+  "learnLv": 40,
+  "isUlt": true
+ },
+ {
+  "skillId": 17,
+  "name": "火弹",
+  "element": 4,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 30,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 18,
+  "name": "焰羽",
+  "element": 4,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 1.6,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 2,
+    "duration": 3,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 2,
+  "rageGain": 0,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 19,
+  "name": "灼印",
+  "element": 4,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 11,
+    "duration": 3,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 25,
+  "isUlt": false
+ },
+ {
+  "skillId": 20,
+  "name": "凤羽燎原",
+  "element": 4,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 2.6,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 2,
+    "duration": 3,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 0,
+  "learnLv": 40,
+  "isUlt": true
+ },
+ {
+  "skillId": 21,
+  "name": "角撞",
+  "element": 0,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 30,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 22,
+  "name": "熔岩突进",
+  "element": 0,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1.75,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 2,
+  "rageGain": 0,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 23,
+  "name": "裂地践",
+  "element": 0,
+  "selector": "enemy_all",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1.2,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 8,
+    "duration": 2,
+    "chance": 0.8,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 30,
+  "isUlt": false
+ },
+ {
+  "skillId": 24,
+  "name": "火岩崩山",
+  "element": 4,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 2.8,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 2,
+    "duration": 3,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 0,
+  "learnLv": 45,
+  "isUlt": true
+ },
+ {
+  "skillId": 25,
+  "name": "电爪",
+  "element": 1,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 30,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 26,
+  "name": "雷驰",
+  "element": 1,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1.4,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 16,
+    "duration": 2,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": true
+   }
+  ],
+  "cd": 2,
+  "rageGain": 0,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 27,
+  "name": "麻痹咬",
+  "element": 1,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 5,
+    "duration": 2,
+    "chance": 0.8,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 25,
+  "isUlt": false
+ },
+ {
+  "skillId": 28,
+  "name": "紫电穿林",
+  "element": 1,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 2.3,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 2,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 0,
+  "learnLv": 40,
+  "isUlt": true
+ },
+ {
+  "skillId": 29,
+  "name": "狼爪",
+  "element": 1,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 30,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 30,
+  "name": "掣雷撕咬",
+  "element": 1,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1.65,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 14,
+    "duration": 2,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": true
+   }
+  ],
+  "cd": 2,
+  "rageGain": 0,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 31,
+  "name": "啸月",
+  "element": 1,
+  "selector": "enemy_all",
+  "effects": [
+   {
+    "type": "RageModify",
+    "power": -20,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   },
+   {
+    "type": "RageModify",
+    "power": 40,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": true
+   }
+  ],
+  "cd": 4,
+  "rageGain": 0,
+  "learnLv": 30,
+  "isUlt": false
+ },
+ {
+  "skillId": 32,
+  "name": "雷霆狼啸",
+  "element": 1,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 2.5,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 6,
+    "duration": 1,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 0,
+  "learnLv": 45,
+  "isUlt": true
+ },
+ {
+  "skillId": 33,
+  "name": "水针",
+  "element": 3,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 30,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 34,
+  "name": "凝冰",
+  "element": 3,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 0.9,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 4,
+    "duration": 1,
+    "chance": 0.9,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 35,
+  "name": "寒潮",
+  "element": 3,
+  "selector": "enemy_all",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 1.1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 9,
+    "duration": 2,
+    "chance": 0.8,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 25,
+  "isUlt": false
+ },
+ {
+  "skillId": 36,
+  "name": "玄冰封川",
+  "element": 3,
+  "selector": "enemy_random",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 1.8,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 2,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 4,
+    "duration": 1,
+    "chance": 0.7,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 0,
+  "learnLv": 40,
+  "isUlt": true
+ },
+ {
+  "skillId": 37,
+  "name": "霜风",
+  "element": 3,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 30,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 38,
+  "name": "雪崩咒",
+  "element": 3,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 1.7,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 2,
+  "rageGain": 0,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 39,
+  "name": "噬魂雪",
+  "element": 3,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 1.3,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 10,
+    "duration": 1,
+    "chance": 0.9,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 30,
+  "isUlt": false
+ },
+ {
+  "skillId": 40,
+  "name": "千里冰封",
+  "element": 3,
+  "selector": "enemy_all",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 2.7,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 4,
+    "duration": 1,
+    "chance": 0.4,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 0,
+  "learnLv": 45,
+  "isUlt": true
+ },
+ {
+  "skillId": 41,
+  "name": "石锤",
+  "element": 0,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 30,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 42,
+  "name": "缩壳",
+  "element": 0,
+  "selector": "self",
+  "effects": [
+   {
+    "type": "Shield",
+    "power": 1.5,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": true
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 18,
+    "duration": 2,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": true
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 43,
+  "name": "震地",
+  "element": 0,
+  "selector": "enemy_all",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1.1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 9,
+    "duration": 2,
+    "chance": 0.8,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 25,
+  "isUlt": false
+ },
+ {
+  "skillId": 44,
+  "name": "不动如山",
+  "element": 0,
+  "selector": "ally_all",
+  "effects": [
+   {
+    "type": "Shield",
+    "power": 1.3,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   },
+   {
+    "type": "Taunt",
+    "power": 2,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": true
+   }
+  ],
+  "cd": 0,
+  "rageGain": 0,
+  "learnLv": 40,
+  "isUlt": true
+ },
+ {
+  "skillId": 45,
+  "name": "扑咬",
+  "element": 0,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "PhysDamage",
+    "power": 1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 30,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 46,
+  "name": "震慑吠",
+  "element": 0,
+  "selector": "enemy_one",
+  "effects": [
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 8,
+    "duration": 2,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 2,
+  "rageGain": 0,
+  "learnLv": 1,
+  "isUlt": false
+ },
+ {
+  "skillId": 47,
+  "name": "地听",
+  "element": 0,
+  "selector": "ally_all",
+  "effects": [
+   {
+    "type": "CaptureBonus",
+    "power": 0.1,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 18,
+    "duration": 2,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 3,
+  "rageGain": 0,
+  "learnLv": 25,
+  "isUlt": false
+ },
+ {
+  "skillId": 48,
+  "name": "大地共鸣",
+  "element": 5,
+  "selector": "enemy_all",
+  "effects": [
+   {
+    "type": "MagDamage",
+    "power": 1.5,
+    "buffId": 0,
+    "duration": 0,
+    "chance": 1,
+    "hitCount": 1,
+    "onSelf": false
+   },
+   {
+    "type": "ApplyBuff",
+    "power": 0,
+    "buffId": 18,
+    "duration": 2,
+    "chance": 1,
+    "hitCount": 0,
+    "onSelf": false
+   }
+  ],
+  "cd": 0,
+  "rageGain": 0,
+  "learnLv": 40,
+  "isUlt": true
+ }
+]

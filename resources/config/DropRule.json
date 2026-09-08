@@ -1,0 +1,72 @@
+[
+ {
+  "dropId": 1,
+  "source": 1,
+  "wWhite": 55,
+  "wGreen": 30,
+  "wBlue": 13,
+  "wPurple": 1.9,
+  "wOrange": 0.1,
+  "wRed": 0,
+  "luckApply": false,
+  "pityQuality": 0,
+  "pityCount": 0,
+  "equipLvRule": "怪等±2"
+ },
+ {
+  "dropId": 2,
+  "source": 2,
+  "wWhite": 30,
+  "wGreen": 35,
+  "wBlue": 25,
+  "wPurple": 8.5,
+  "wOrange": 1.4,
+  "wRed": 0.1,
+  "luckApply": true,
+  "pityQuality": 3,
+  "pityCount": 15,
+  "equipLvRule": "怪等±2"
+ },
+ {
+  "dropId": 3,
+  "source": 3,
+  "wWhite": 0,
+  "wGreen": 25,
+  "wBlue": 40,
+  "wPurple": 27,
+  "wOrange": 7.5,
+  "wRed": 0.5,
+  "luckApply": true,
+  "pityQuality": 4,
+  "pityCount": 20,
+  "equipLvRule": "怪等±2"
+ },
+ {
+  "dropId": 4,
+  "source": 4,
+  "wWhite": 40,
+  "wGreen": 32,
+  "wBlue": 20,
+  "wPurple": 7,
+  "wOrange": 1,
+  "wRed": 0.05,
+  "luckApply": true,
+  "pityQuality": 4,
+  "pityCount": 10,
+  "equipLvRule": "怪等±2"
+ },
+ {
+  "dropId": 5,
+  "source": 5,
+  "wWhite": 25,
+  "wGreen": 32,
+  "wBlue": 28,
+  "wPurple": 12,
+  "wOrange": 2.6,
+  "wRed": 0.4,
+  "luckApply": true,
+  "pityQuality": 4,
+  "pityCount": 15,
+  "equipLvRule": "怪等±2"
+ }
+]

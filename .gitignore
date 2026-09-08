@@ -1,4 +1,23 @@
-out/
+# Godot 4+ specific ignores
+.godot/
+/android/
+/build/
+
+# Godot 导出编译产物（.gd 编译 .gdc，随导出生成不入库）
+*.gdc
+*.gdc.uid
+
+# godot-ai 迁移运行时状态（backup 旧树副本 + pending 标记，随编辑器自更新产生）
+addons/.godot_ai_update/
+
+# 测试报告（GdUnit4 运行产物）
+reports/
+
+# ZCode 会话工作工件（非项目交付物，不入库）
+.zcode/plans/
+
+# Node / 导表产物
 node_modules/
+out/
 *.log
 .DS_Store

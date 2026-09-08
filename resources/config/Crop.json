@@ -1,0 +1,34 @@
+[
+ {
+  "cropId": 1,
+  "name": "灵谷",
+  "seedCost": 20,
+  "growMin": 30,
+  "yieldN": 6,
+  "unlock": "淬体"
+ },
+ {
+  "cropId": 2,
+  "name": "赤焰花",
+  "seedCost": 45,
+  "growMin": 60,
+  "yieldN": 4,
+  "unlock": "凝血"
+ },
+ {
+  "cropId": 3,
+  "name": "清心草",
+  "seedCost": 45,
+  "growMin": 60,
+  "yieldN": 4,
+  "unlock": "凝血"
+ },
+ {
+  "cropId": 4,
+  "name": "凝神菇",
+  "seedCost": 80,
+  "growMin": 120,
+  "yieldN": 3,
+  "unlock": "通脉"
+ }
+]

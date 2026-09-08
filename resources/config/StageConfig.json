@@ -1,0 +1,86 @@
+[
+ {
+  "stageId": 1,
+  "mapId": 1,
+  "order": 1,
+  "name": "石岭村外·灰雀",
+  "waves": [
+   1
+  ],
+  "dropId": 1,
+  "dropCount": 2,
+  "power": 250,
+  "captureable": true,
+  "boss": false
+ },
+ {
+  "stageId": 2,
+  "mapId": 2,
+  "order": 1,
+  "name": "黑风林·外围藤影",
+  "waves": [
+   2
+  ],
+  "dropId": 1,
+  "dropCount": 2,
+  "power": 600,
+  "captureable": true,
+  "boss": false
+ },
+ {
+  "stageId": 3,
+  "mapId": 2,
+  "order": 2,
+  "name": "黑风林·桃狐小径",
+  "waves": [
+   3
+  ],
+  "dropId": 1,
+  "dropCount": 2,
+  "power": 850,
+  "captureable": true,
+  "boss": false
+ },
+ {
+  "stageId": 4,
+  "mapId": 2,
+  "order": 3,
+  "name": "黑风林·雾深处",
+  "waves": [
+   4
+  ],
+  "dropId": 2,
+  "dropCount": 1,
+  "power": 1100,
+  "captureable": true,
+  "boss": false
+ },
+ {
+  "stageId": 5,
+  "mapId": 2,
+  "order": 4,
+  "name": "黑风林·老藤营地",
+  "waves": [
+   5
+  ],
+  "dropId": 2,
+  "dropCount": 1,
+  "power": 1400,
+  "captureable": false,
+  "boss": false
+ },
+ {
+  "stageId": 6,
+  "mapId": 2,
+  "order": 5,
+  "name": "域主·藤皇",
+  "waves": [
+   6
+  ],
+  "dropId": 3,
+  "dropCount": 1,
+  "power": 1800,
+  "captureable": false,
+  "boss": true
+ }
+]
