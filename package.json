@@ -1,0 +1,13 @@
+{
+  "name": "mangshou-shouqi",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "《莽荒兽契》Phase 0：导表管线 + headless 确定性战斗引擎（依据 docs/ 01-12 设计文档）",
+  "scripts": {
+    "export": "node tools/export/export.ts",
+    "test": "node --test \"tests/*.test.ts\"",
+    "demo": "node src/index.ts",
+    "report": "node tools/export/export.ts && node -e \"console.log(require('fs').readFileSync('out/report.md','utf8'))\""
+  }
+}

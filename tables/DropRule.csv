@@ -1,0 +1,9 @@
+dropId,source,wWhite,wGreen,wBlue,wPurple,wOrange,wRed,luckApply,pityQuality,pityCount,equipLvRule
+int,int,float,float,float,float,float,float,bool,int,int,string
+c,c,c,c,c,c,c,c,c,c,c,c
+主键,来源（Enums.DropSource）,白,绿,蓝,紫,橙,红,受幸运值加成,保底品质0无3紫4橙,保底次数,装备等级规则
+1,1,55,30,13,1.9,0.1,0,false,0,0,怪等±2
+2,2,30,35,25,8.5,1.4,0.1,true,3,15,怪等±2
+3,3,0,25,40,27,7.5,0.5,true,4,20,怪等±2
+4,4,40,32,20,7,1,0.05,true,4,10,怪等±2
+5,5,25,32,28,12,2.6,0.4,true,4,15,怪等±2

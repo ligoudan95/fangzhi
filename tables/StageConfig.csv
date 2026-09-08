@@ -1,0 +1,10 @@
+stageId,mapId,order,name,waves,dropId,dropCount,power,captureable,boss
+int,int,int,string,refs<EnemyGroup>,ref<DropRule>,int,int,bool,bool
+c,c,c,c,c,c,c,c,c,c
+主键,地图1石岭村2黑风林,顺序,关卡名,波次敌人组,掉落规则,掉落次数,推荐战力,含可捕捉野怪,是否Boss关
+1,1,1,石岭村外·灰雀,1,1,2,250,true,false
+2,2,1,黑风林·外围藤影,2,1,2,600,true,false
+3,2,2,黑风林·桃狐小径,3,1,2,850,true,false
+4,2,3,黑风林·雾深处,4,2,1,1100,true,false
+5,2,4,黑风林·老藤营地,5,2,1,1400,false,false
+6,2,5,域主·藤皇,6,3,1,1800,false,true
