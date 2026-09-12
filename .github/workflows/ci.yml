@@ -55,7 +55,10 @@ jobs:
           GODOT_BIN: "${{ github.workspace }}/Godot_v4.7.1-stable_linux.x86_64"
         run: |
           set +e
-          ./addons/gdUnit4/runtest.sh -a tests/ --ignoreHeadlessMode 2>&1 | tee gdunit.log
+          # 不经 runtest.sh：其以非 headless 起 Godot（-d --remote-debug），无显示的 Linux runner 直接失败；
+          # 此处与本地 tools/check_all.ps1 第 6 步完全同路径（-s GdUnitCmdTool + --headless + --ignoreHeadlessMode）
+          ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . \
+            -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd -a tests/ --ignoreHeadlessMode 2>&1 | tee gdunit.log
           status=${PIPESTATUS[0]}
           # 失败行转注解：日志 API 需权限，注解公开可读（诊断用，问题定位后可移除）
           grep -aE "FAILED|SCRIPT ERROR|Runtime Error|Expecting|Parse Error" gdunit.log | head -40 | while IFS= read -r line; do
