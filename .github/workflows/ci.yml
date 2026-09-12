@@ -150,6 +150,7 @@ jobs:
       - name: Export debug APK
         run: |
           set +e
+          mkdir -p build/android
           ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . \
             --export-debug "Android" build/android/fangzhi-debug.apk 2>&1 | tee export.log
           status=${PIPESTATUS[0]}
