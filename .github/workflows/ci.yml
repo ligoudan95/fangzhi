@@ -132,13 +132,14 @@ jobs:
           keytool -genkeypair -keystore debug.keystore -alias androiddebugkey \
             -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 9999 \
             -dname "CN=Android Debug,O=Android,C=US"
-      - name: Write Godot editor settings (Android SDK + keystore)
+      - name: Write Godot editor settings (JDK + Android SDK + keystore)
         run: |
-          mkdir -p ~/.local/share/godot
-          cat > ~/.local/share/godot/editor_settings-4.7.tres <<'EOF'
+          mkdir -p ~/.config/godot
+          cat > ~/.config/godot/editor_settings-4.7.tres <<EOF
           [gd_resource type="EditorSettings" format=3]
 
           [resource]
+          export/android/java_sdk_path = "${JAVA_HOME}"
           export/android/android_sdk_path = "/usr/local/lib/android/sdk"
           export/android/debug_keystore = "${{ github.workspace }}/debug.keystore"
           export/android/debug_keystore_user = "androiddebugkey"
@@ -146,8 +147,17 @@ jobs:
           EOF
       - name: Export debug APK
         run: |
+          set +e
           ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . \
-            --export-debug "Android" build/android/fangzhi-debug.apk
+            --export-debug "Android" build/android/fangzhi-debug.apk 2>&1 | tee export.log
+          status=${PIPESTATUS[0]}
+          # 失败行转注解（日志 API 需权限，注解公开可读）
+          grep -aE "ERROR|error|Failed|failed|Unable|not found" export.log | grep -av "0 error" | head -40 | while IFS= read -r line; do
+            safe=$(printf '%s' "$line" | sed 's/%/%25/g; s/\r/%0D/g; s/\n/%0A/g' | cut -c1-250)
+            echo "::error title=Export::$safe"
+          done
+          ls -la build/android 2>/dev/null || true
+          exit $status
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
