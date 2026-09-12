@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  activeQuest, advanceStory, applyProgress, createQuestState, type QuestRow,
+  activeQuest, addProgress, advanceStory, createQuestState, type QuestRow,
 } from '../src/logic/questTracker.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -20,64 +20,72 @@ test('初始激活序章剧情节点，advanceStory 跳过并停在目标节点'
   assert.equal(r.state.claimedXiu, 200);
 });
 
-test('进度事件：目标/类型不匹配不推进', () => {
+test('进度事件：目标/类型不匹配不推进（计数器保留）', () => {
   const s = advanceStory(createQuestState(), quests).state;   // active=守住第一波(goal1,target1)
-  const wrongType = applyProgress(s, { goalType: 2, targetId: 1, amount: 1 }, quests);
+  const wrongType = addProgress(s, 2, 1, 1, quests);
   assert.equal(wrongType.progressed, false);
-  const wrongTarget = applyProgress(s, { goalType: 1, targetId: 99, amount: 1 }, quests);
+  const wrongTarget = addProgress(s, 1, 99, 1, quests);
   assert.equal(wrongTarget.progressed, false);
+  assert.equal(wrongTarget.state.counters['g1:t99'], 1);   // 计数器仍累计
   assert.deepEqual(wrongTarget.state.completed, s.completed);
 });
 
-test('通关序章：stage→捕捉→教学节点连带剧情跳完入第一章', () => {
+test('通关序章：stage→捕捉→跨章连锁跳过第一章首剧情', () => {
   let s = advanceStory(createQuestState(), quests).state;
-  s = applyProgress(s, { goalType: 1, targetId: 1, amount: 1 }, quests).state;   // 守住第一波
-  // 序章节点3（收服第一只，goal2）激活；完成它后序章耗尽 → 连锁进入第一章并跳过首剧情
-  const r = applyProgress(s, { goalType: 2, targetId: 0, amount: 1 }, quests);
+  s = addProgress(s, 1, 1, 1, quests).state;   // 守住第一波
+  const r = addProgress(s, 2, 0, 1, quests);   // 收服第一只（任意捕捉）
   assert.equal(r.progressed, true);
   assert.deepEqual(r.done.map(q => q.questId), [3, 4]);     // 收服第一只 + 黑风林的低语（跨章连锁）
   assert.equal(r.state.chapterId, 1);
   assert.equal(activeQuest(r.state, quests)?.questId, 5);   // 藤影清剿
 });
 
-test('第一章全流程走查：10 节点按序完成至域主藤皇', () => {
+test('累计进度：捕捉同一目标分三次达成 count=3 节点', () => {
+  let s = advanceStory(createQuestState(), quests).state;
+  s = addProgress(s, 1, 1, 1, quests).state;      // 序章 stage
+  s = addProgress(s, 2, 0, 1, quests).state;      // 序章 捕捉 → 进入第一章
+  s = addProgress(s, 1, 2, 1, quests).state;      // 藤影清剿
+  s = addProgress(s, 3, 0, 1, quests).state;      // 首件战利品
+  s = addProgress(s, 4, 0, 1, quests).state;      // 鉴定开光
+  // 木系图鉴·初（goal2, target2, count3）：分三次累计
+  const r1 = addProgress(s, 2, 1003, 1, quests);
+  assert.equal(r1.progressed, false);             // 1/3 未达
+  const r2 = addProgress(r1.state, 2, 1003, 1, quests);
+  assert.equal(r2.progressed, false);             // 2/3 未达
+  const r3 = addProgress(r2.state, 2, 1003, 1, quests);
+  assert.equal(r3.progressed, true);              // 3/3 达成
+  assert.equal(activeQuest(r3.state, quests)?.questId, 9);   // 三兽成阵
+});
+
+test('第一章全流程走查：13 节点按序完成至域主藤皇', () => {
   let s = advanceStory(createQuestState(), quests).state;
   const events: Array<[number, number, number]> = [
     [1, 1, 1],    // 序章 stage1
     [2, 0, 1],    // 序章 捕捉
-    // 第一章 1 已被连锁跳过；5 藤影清剿 stage2
-    [1, 2, 1],
-    // 6 播种时节 goal5 crop1
-    [5, 1, 1],
-    // 7 首件战利品 goal3
-    [3, 0, 1],
-    // 8 鉴定开光 goal4
-    [4, 0, 1],
-    // 9 木系图鉴·初 goal2×3（藤蔓妖2）
-    [2, 2, 3],
-    // 10 三兽成阵 goal6×3
-    [6, 0, 3],
-    // 11 雾深处 stage4
-    [1, 4, 1],
-    // 12 老藤营地 stage5
-    [1, 5, 1],
-    // 13 域主·藤皇 stage6
-    [1, 6, 1],
+    [1, 2, 1],    // 藤影清剿 stage2
+    [3, 0, 1],    // 首件战利品
+    [4, 0, 1],    // 鉴定开光
+    [2, 1003, 1], [2, 1003, 1], [2, 1003, 1],  // 木系图鉴·初 ×3（累计）
+    [6, 0, 3],    // 三兽成阵
+    [5, 0, 1],    // 播种时节（收获）
+    [1, 4, 1],    // 雾深处
+    [1, 5, 1],    // 老藤营地
+    [1, 6, 1],    // 域主·藤皇
   ];
   for (const [goalType, targetId, amount] of events) {
-    s = applyProgress(s, { goalType, targetId, amount }, quests).state;
+    s = addProgress(s, goalType, targetId, amount, quests).state;
   }
-  assert.equal(s.completed[13], true);       // 域主藤皇完成
-  assert.equal(s.chapterId, 2);              // 章节耗尽进入下一章（无数据=终态）
+  assert.equal(s.completed[13], true);
+  assert.equal(s.chapterId, 2);
   assert.equal(activeQuest(s, quests), null);
-  assert.equal(s.claimedXiu, 5400);         // 全部 13 节点 rewardXiu 累计
+  assert.equal(s.claimedXiu, 5400);
 });
 
 test('幂等：同事件序列两次执行状态一致', () => {
   const run = () => {
     let s = advanceStory(createQuestState(), quests).state;
     for (const e of [[1, 1, 1], [2, 0, 1], [1, 2, 1]] as const) {
-      s = applyProgress(s, { goalType: e[0], targetId: e[1], amount: e[2] }, quests).state;
+      s = addProgress(s, e[0], e[1], e[2], quests).state;
     }
     return s;
   };

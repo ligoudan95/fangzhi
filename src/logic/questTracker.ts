@@ -1,8 +1,8 @@
 /**
  * 任务/教学推进器（TS 基准，docs/16 §4 / docs/09 §3）——纯函数：
- * 按章节顺序推进；goalType=0（剧情）由 advanceStory 显式跳过，goalType>0 由
- * applyProgress 消费进度事件匹配累计；章节耗尽自动进入下一章 order=1；
- * 完成目标节点后连锁跳过其后剧情节点（含跨章首节点）。进度持久化于 player.quests。
+ * add_progress 累计进度事件（计数器持久于 state.counters）并按需完成当前激活节点；
+ * goalType=0（剧情）由 advance_story 显式跳过；完成目标后连锁跳过其后剧情节点（含跨章首节点）；
+ * 章节耗尽进入下一章 order=1。进度持久化于 player.quests。
  */
 export interface QuestRow {
   questId: number; chapterId: number; order: number; nodeType: number;
@@ -13,13 +13,12 @@ export interface QuestState {
   chapterId: number;
   order: number;            // 当前激活节点（从 1 起）
   completed: Record<number, true>;
+  counters: Record<string, number>;  // "g<goal>" 类型累计 / "g<goal>:t<target>" 具体累计
   claimedXiu: number;       // 已领取修为累计（调用方入账 cultivation）
 }
 
-export interface ProgressEvent { goalType: number; targetId: number; amount: number }
-
 export function createQuestState(): QuestState {
-  return { chapterId: 0, order: 1, completed: {}, claimedXiu: 0 };
+  return { chapterId: 0, order: 1, completed: {}, counters: {}, claimedXiu: 0 };
 }
 
 export function activeQuest(state: QuestState, quests: QuestRow[]): QuestRow | null {
@@ -40,7 +39,7 @@ function completeNode(state: QuestState, row: QuestRow): void {
   state.claimedXiu += row.rewardXiu;
 }
 
-/** 跳过当前位置起的连续剧情节点（goalType=0），返回被完成节点 */
+/** 跳过当前位置起的连续剧情节点（goalType=0） */
 function skipStory(state: QuestState, quests: QuestRow[]): QuestRow[] {
   const done: QuestRow[] = [];
   let active = activeQuest(state, quests);
@@ -54,27 +53,43 @@ function skipStory(state: QuestState, quests: QuestRow[]): QuestRow[] {
 }
 
 export function advanceStory(state: QuestState, quests: QuestRow[]): { state: QuestState; done: QuestRow[] } {
-  const next: QuestState = { ...state, completed: { ...state.completed } };
+  const next = cloneState(state);
   const done = skipStory(next, quests);
   return { state: next, done };
 }
 
+function cloneState(state: QuestState): QuestState {
+  return {
+    chapterId: state.chapterId, order: state.order,
+    completed: { ...state.completed }, counters: { ...state.counters },
+    claimedXiu: state.claimedXiu,
+  };
+}
+
 /**
- * 应用进度事件：仅当事件与当前激活节点的 goalType 匹配且 targetId 匹配（0=任意）时生效；
- * goalType=0 节点不接受进度事件（走 advanceStory）。达成后完成并连锁跳过剧情节点。
+ * 累计进度并尝试完成当前激活节点：
+ * - 计数器双轨累计（类型总量 g<goal> + 具体 g<goal>:t<target>），跨节点持续累加；
+ * - 激活节点 goalType 不匹配 → 计数器保留、节点不动；
+ * - targetId=0 的节点读类型总量，否则读具体目标计数；达到 count 即完成并连锁跳过剧情。
  */
-export function applyProgress(
-  state: QuestState, event: ProgressEvent, quests: QuestRow[],
+export function addProgress(
+  state: QuestState, goalType: number, targetId: number, amount: number, quests: QuestRow[],
 ): { state: QuestState; done: QuestRow[]; progressed: boolean } {
-  const next: QuestState = { ...state, completed: { ...state.completed } };
+  const next = cloneState(state);
+  if (goalType <= 0 || amount <= 0) return { state: next, done: [], progressed: false };
+  const typeKey = `g${goalType}`;
+  next.counters[typeKey] = (next.counters[typeKey] ?? 0) + amount;
+  const specificKey = `g${goalType}:t${targetId}`;
+  next.counters[specificKey] = (next.counters[specificKey] ?? 0) + amount;
+
   const active = activeQuest(next, quests);
-  if (!active || active.goalType === 0 || active.goalType !== event.goalType) {
+  if (!active || active.goalType !== goalType) {
     return { state: next, done: [], progressed: false };
   }
-  if (active.targetId !== 0 && active.targetId !== event.targetId) {
-    return { state: next, done: [], progressed: false };
-  }
-  if (event.amount < active.count) {
+  const effective = active.targetId === 0
+    ? next.counters[typeKey] ?? 0
+    : next.counters[`g${goalType}:t${active.targetId}`] ?? 0;
+  if (effective < active.count) {
     return { state: next, done: [], progressed: false };
   }
   completeNode(next, active);

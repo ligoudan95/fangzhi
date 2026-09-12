@@ -179,3 +179,12 @@ jobs:
         with:
           name: fangzhi-debug-apk
           path: build/android/fangzhi-debug.apk
+      - name: Verify APK contents (config tables packaged)
+        run: |
+          # docs/13 §11：include_filter=*.json 保配置进包——校验导表产物随包
+          count=$(unzip -l build/android/fangzhi-debug.apk | grep -c "assets/.*/config/.*\.json$" || true)
+          echo "config json in APK: $count"
+          if [ "$count" -lt 17 ]; then
+            echo "::error title=APK::配置表进包数量不足（期望 ≥17，实际 $count）"
+            exit 1
+          fi

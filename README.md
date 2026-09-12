@@ -51,7 +51,7 @@ out/             导出产物（JSON 配置 / types.d.ts / report.md 平衡报�
 - [x] 存档与离线底层（M4，docs/15）：SaveService 信封/checksum/迁移/恢复 + UtcTimeSlicer 双端镜像 + GameStateFactory
 - [x] 村落作物生产闭环（M4 尾项，docs/26 评审）：ItemBase/StorageRule/SeasonWeather 三表 + Crop 扩展（7 作物全量）；双端 settle_crops（跨季分段/离线上限/软容量溢出衰减）+ `[farm]` 对拍区段；矿场/配方/派遣属 Phase B
 - [x] 设置页（docs/23，M6）：五总线音量即时生效 + 总静音 + 减少动态（已接入震屏/闪烁开关）+ 粒子/字号档位持久化；`user://settings.json` 原子写
-- [x] FTUE 数据+推进器（M6，docs/16 §2/§4）：MainQuest 第一章扩至 10 节点（首件装备/鉴定/上阵三宠新 goalType 3/4/6）+ 双端 QuestTracker（剧情跳过/目标事件/跨章连锁/幂等）；视图接线与首小时 E2E 随后
+- [x] FTUE 闭环（M6，docs/16）：MainQuest 第一章 10 节点按玩法时序重排 + goalType 3/4/6 扩展；双端 QuestTracker（累计进度/跨章连锁/幂等）；GameSession 垂直切片粘合（存档↔战斗↔掉落/鉴定↔捕捉↔播种/离线↔任务全链）+ 首小时 E2E（新档→序章→掉宝→鉴定→图鉴→三兽→离线收获→存读往返，78 项 GdUnit 全绿）；CI 增 APK 配置进包校验（≥17 表）
 - [ ] `config_types.gd` 与 `docs/fields.md` 生成链验收（并发实现已落工作树，仍需导表/漂移检查）
 - [x] Godot 工程骨架 D1-2（docs/13 §13）：五层目录 + Autoload 四件套 + 五总线 + `npm run sync:godot` 导表回填链
 - [x] stats.gd 移植 + 锚点测试 D3-5：`ConfigService.gd`、成长公式与对应 GdUnit4 测试已入库；当前运行结果以本次 CI/本地检查记录为准

@@ -58,17 +58,6 @@
   "questId": 6,
   "chapterId": 1,
   "order": 3,
-  "nodeType": 3,
-  "title": "播种时节",
-  "goalType": 5,
-  "targetId": 1,
-  "count": 1,
-  "rewardXiu": 300
- },
- {
-  "questId": 7,
-  "chapterId": 1,
-  "order": 4,
   "nodeType": 2,
   "title": "首件战利品",
   "goalType": 3,
@@ -77,9 +66,9 @@
   "rewardXiu": 400
  },
  {
-  "questId": 8,
+  "questId": 7,
   "chapterId": 1,
-  "order": 5,
+  "order": 4,
   "nodeType": 3,
   "title": "鉴定开光",
   "goalType": 4,
@@ -88,26 +77,37 @@
   "rewardXiu": 300
  },
  {
-  "questId": 9,
+  "questId": 8,
   "chapterId": 1,
-  "order": 6,
+  "order": 5,
   "nodeType": 2,
   "title": "木系图鉴·初",
   "goalType": 2,
-  "targetId": 2,
+  "targetId": 1003,
   "count": 3,
   "rewardXiu": 400
  },
  {
-  "questId": 10,
+  "questId": 9,
   "chapterId": 1,
-  "order": 7,
+  "order": 6,
   "nodeType": 2,
   "title": "三兽成阵",
   "goalType": 6,
   "targetId": 0,
   "count": 3,
   "rewardXiu": 500
+ },
+ {
+  "questId": 10,
+  "chapterId": 1,
+  "order": 7,
+  "nodeType": 3,
+  "title": "播种时节",
+  "goalType": 5,
+  "targetId": 0,
+  "count": 1,
+  "rewardXiu": 300
  },
  {
   "questId": 11,

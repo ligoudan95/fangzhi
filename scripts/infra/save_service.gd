@@ -265,7 +265,7 @@ func _canonicalize_dict(dict: Dictionary) -> String:
 	keys.sort()
 	var parts: Array[String] = []
 	for k in keys:
-		parts.append(_json_key(String(k)) + ":" + _canonicalize(dict[k]))
+		parts.append(_json_key(str(k)) + ":" + _canonicalize(dict[k]))
 	return "{" + ",".join(parts) + "}"
 
 
