@@ -38,16 +38,23 @@ jobs:
       - name: gdlint
         run: gdlint scripts tests
 
-  # GdUnit4 单测（docs/13 §12）：28 项（15 项 TS 断言口径平移 + 加强项），D14 起强制阻断
+  # GdUnit4 单测（docs/13 §12）：64 项（TS 断言口径平移 + 战斗/掉落/存档/设置加强项），强制阻断
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Download Godot headless
+        run: |
+          curl -L -o godot.zip "https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip"
+          unzip godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+      - name: Build import/class caches
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . --import
       - name: Run GdUnit4 tests
         env:
-          GODOT_DOWNLOAD_URL: "https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip"
+          GODOT_BIN: "${{ github.workspace }}/Godot_v4.7.1-stable_linux.x86_64"
         run: |
-          ./addons/gdUnit4/runtest.sh -a tests/ -gd "$GODOT_DOWNLOAD_URL" --ignoreHeadlessMode
+          ./addons/gdUnit4/runtest.sh -a tests/ --ignoreHeadlessMode
 
   # 引擎对拍（docs/13 §6）：TS 基准生成期望日志，GDScript 同种子逐行 diff——阻塞级
   parity:
