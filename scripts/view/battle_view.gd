@@ -216,6 +216,9 @@ func _make_actor_slot(uid: int, side: int, unit_name: String, hp: int, element: 
 	var name_label := Label.new()
 	name_label.text = ("[敌]" if side == 1 else "") + unit_name
 	name_label.add_theme_font_size_override("font_size", 22)
+	name_label.add_theme_color_override("font_color", Color("#E9E2D0"))
+	name_label.add_theme_constant_override("outline_size", 4)
+	name_label.add_theme_color_override("font_outline_color", Color(0.1, 0.08, 0.06))
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var hp_bar := ProgressBar.new()
 	hp_bar.min_value = 0
@@ -223,6 +226,16 @@ func _make_actor_slot(uid: int, side: int, unit_name: String, hp: int, element: 
 	hp_bar.value = hp
 	hp_bar.show_percentage = false
 	hp_bar.custom_minimum_size = Vector2(180, 18)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color("#52C462")
+	fill.corner_radius_top_left = 4
+	fill.corner_radius_top_right = 4
+	fill.corner_radius_bottom_left = 4
+	fill.corner_radius_bottom_right = 4
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.16, 0.13, 0.1)
+	hp_bar.add_theme_stylebox_override("fill", fill)
+	hp_bar.add_theme_stylebox_override("background", bg)
 	var skill_label := Label.new()
 	skill_label.add_theme_font_size_override("font_size", 20)
 	skill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

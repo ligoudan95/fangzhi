@@ -3,7 +3,7 @@
 		"servers": {
 			"godot-ai": {
 				"type": "stdio",
-				"command": "uvx",
+				"command": "C:/Users/A/.local/bin/uvx.exe",
 				"args": [
 					"--link-mode",
 					"copy",
@@ -15,7 +15,8 @@
 					"--ws-port",
 					"9500"
 				],
-				"env": {}
+				"env": {},
+				"timeoutMs": 120000
 			}
 		}
 	}
