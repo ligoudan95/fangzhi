@@ -154,8 +154,8 @@ jobs:
           ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . \
             --export-debug "Android" build/android/fangzhi-debug.apk 2>&1 | tee export.log
           status=${PIPESTATUS[0]}
-          # 失败转注解：末尾优先（崩溃点在最后），再补关键词段（日志 API 需权限，注解公开可读）
-          { tail -50 export.log; grep -aiE "crash|signal|abort|segmentation|fault|FATAL" export.log; } | head -70 | while IFS= read -r line; do
+          # 失败转注解：过滤资源清单行后取末尾（GitHub 每步注解上限 10 条）
+          grep -av "^ADDING:" export.log | grep -av "^\s*at:" | tail -8 | while IFS= read -r line; do
             safe=$(printf '%s' "$line" | sed 's/%/%25/g; s/\r/%0D/g; s/\n/%0A/g' | cut -c1-250)
             echo "::error title=Export::$safe"
           done
