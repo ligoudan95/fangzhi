@@ -1,10 +1,6 @@
-# Layer dependency direction check (fangzhi AGENTS.md layering rule)
+# Layer dependency direction and pure-logic dependency check.
 # Usage: powershell -NoProfile -ExecutionPolicy Bypass -File tools\dep_check.ps1
-# Exit code 1 on violation
-# Checks .gd files (class_name refs + preload/load paths) and .tscn files
-# (ext_resource paths) for upward cross-layer references.
-# Layers (docs/13 SS3): res://scripts/ infra -> config -> battle -> logic -> view
-# Higher layer may reference lower; never the reverse.
+# Layers: infra -> config -> battle -> logic -> view. Higher may reference lower.
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
@@ -13,36 +9,40 @@ $layers = @("infra", "config", "battle", "logic", "view")
 $layerIndex = @{}
 for ($i = 0; $i -lt $layers.Count; $i++) { $layerIndex[$layers[$i]] = $i }
 
-# Files exempt from the check ( autoload carriers that must reference all
-# layers, e.g. a future boot injector ). Use relative path with backslashes.
 $exempt = @(
     # "scripts\infra\boot.gd"
 )
-
-# class_name table is built from .gd files only.
 $classLayer = @{}
-# Each entry: @(relPath, layer, rawContent)
 $gdEntries = @()
 $tscnEntries = @()
 
 foreach ($layer in $layers) {
     $dir = Join-Path $srcRoot $layer
     if (-not (Test-Path $dir)) { continue }
-    foreach ($f in (Get-ChildItem -Path $dir -Recurse -Filter "*.gd")) {
-        $rel = $f.FullName.Substring($root.Length + 1)
-        $raw = Get-Content -LiteralPath $f.FullName -Raw -Encoding UTF8
+    foreach ($file in (Get-ChildItem -Path $dir -Recurse -Filter "*.gd")) {
+        $rel = $file.FullName.Substring($root.Length + 1)
+        $raw = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8
         $gdEntries += ,@($rel, $layer, $raw)
-        $m = [regex]::Match($raw, '(?m)^class_name\s+(\w+)')
-        if ($m.Success) { $classLayer[$m.Groups[1].Value] = $layer }
+        $match = [regex]::Match($raw, '(?m)^class_name\s+(\w+)')
+        if ($match.Success) { $classLayer[$match.Groups[1].Value] = $layer }
     }
-    foreach ($f in (Get-ChildItem -Path $dir -Recurse -Filter "*.tscn")) {
-        $rel = $f.FullName.Substring($root.Length + 1)
-        $raw = Get-Content -LiteralPath $f.FullName -Raw -Encoding UTF8
-        $tscnEntries += ,@($rel, $layer, $raw)
+}
+
+# Scenes are view-owned composition roots, including nested scene directories.
+$scenesRoot = Join-Path $root "scenes"
+if (Test-Path $scenesRoot) {
+    foreach ($file in (Get-ChildItem -Path $scenesRoot -Recurse -Filter "*.tscn")) {
+        $rel = $file.FullName.Substring($root.Length + 1)
+        $raw = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8
+        $tscnEntries += ,@($rel, "view", $raw)
     }
 }
 
 $violations = @()
+$engineTypes = @(
+    "Node", "Node2D", "Node3D", "Control", "SceneTree", "PackedScene", "CanvasItem",
+    "ResourceLoader", "Input", "DisplayServer", "RenderingServer", "PhysicsServer", "AudioServer"
+)
 
 foreach ($entry in $gdEntries) {
     $rel = $entry[0]
@@ -51,45 +51,56 @@ foreach ($entry in $gdEntries) {
     $normRel = $rel -replace "/", "\"
     if ($exempt -contains $normRel) { continue }
 
-    foreach ($cls in $classLayer.Keys) {
-        $refLayer = $classLayer[$cls]
+    foreach ($className in $classLayer.Keys) {
+        $refLayer = $classLayer[$className]
         if ($layerIndex[$refLayer] -gt $layerIndex[$layer]) {
-            if ($content -cmatch "(?<![\w.])$cls(?!\w)") {
-                $violations += "${rel}: references upper-layer class $cls ($refLayer)"
+            $pattern = "(?<![\w.])" + [regex]::Escape($className) + "(?!\w)"
+            if ($content -cmatch $pattern) {
+                $violations += "${rel}: references upper-layer class $className ($refLayer)"
             }
         }
     }
 
-    $preloads = [regex]::Matches($content, '(?:preload|load)\s*\(\s*"([^"]+)"')
-    foreach ($p in $preloads) {
-        $res = $p.Groups[1].Value
-        $m2 = [regex]::Match($res, '^res://(?:scripts/)?(\w+)/')
-        if ($m2.Success) {
-            $target = $m2.Groups[1].Value
+    $loads = [regex]::Matches($content, '(?:preload|load)\s*\(\s*"([^"]+)"')
+    foreach ($load in $loads) {
+        $resourcePath = $load.Groups[1].Value
+        $match = [regex]::Match($resourcePath, '^res://scripts/(\w+)/')
+        if ($match.Success) {
+            $target = $match.Groups[1].Value
             if ($layerIndex.ContainsKey($target) -and ($layerIndex[$target] -gt $layerIndex[$layer])) {
-                $violations += "${rel}: cross-layer preload/load ${res} ($target)"
+                $violations += "${rel}: cross-layer preload/load ${resourcePath} ($target)"
             }
+        }
+    }
+
+    if ($layer -eq "battle" -or $layer -eq "logic") {
+        foreach ($engineType in $engineTypes) {
+            $pattern = "(?<![\w.])" + [regex]::Escape($engineType) + "(?!\w)"
+            if ($content -cmatch $pattern) {
+                $violations += "${rel}: pure $layer layer references engine type $engineType"
+            }
+        }
+        if ($content -cmatch '(?m)^\s*extends\s+(?!RefCounted\b)\w+') {
+            $violations += "${rel}: pure $layer layer must extend RefCounted when it declares extends"
+        }
+        if ($content -cmatch 'res://scenes/') {
+            $violations += "${rel}: pure $layer layer references scene resources"
         }
     }
 }
 
-# .tscn check: tolerate any ext_resource attribute order/type (format 2/3);
-# only flag paths whose scripts/ path segment is a higher layer than the file's own layer.
 foreach ($entry in $tscnEntries) {
     $rel = $entry[0]
     $layer = $entry[1]
     $content = $entry[2]
-    $normRel = $rel -replace "/", "\"
-    if ($exempt -contains $normRel) { continue }
-
-    $extRefs = [regex]::Matches($content, '\[ext_resource[^\]]*?path="(res://[^"]+)"')
-    foreach ($er in $extRefs) {
-        $res = $er.Groups[1].Value
-        $m2 = [regex]::Match($res, '^res://(?:scripts/)?(\w+)/')
-        if ($m2.Success) {
-            $target = $m2.Groups[1].Value
+    $refs = [regex]::Matches($content, '\[ext_resource[^\]]*?path="(res://scripts/[^\"]+)"')
+    foreach ($ref in $refs) {
+        $resourcePath = $ref.Groups[1].Value
+        $match = [regex]::Match($resourcePath, '^res://scripts/(\w+)/')
+        if ($match.Success) {
+            $target = $match.Groups[1].Value
             if ($layerIndex.ContainsKey($target) -and ($layerIndex[$target] -gt $layerIndex[$layer])) {
-                $violations += "${rel}: cross-layer tscn ext_resource ${res} (${target})"
+                $violations += "${rel}: cross-layer tscn ext_resource ${resourcePath} ($target)"
             }
         }
     }
@@ -97,8 +108,8 @@ foreach ($entry in $tscnEntries) {
 
 if ($violations.Count -gt 0) {
     Write-Host ("dep_check: " + $violations.Count + " violation(s)") -ForegroundColor Red
-    foreach ($v in $violations) { Write-Host ("  " + $v) -ForegroundColor Red }
+    foreach ($violation in $violations) { Write-Host ("  " + $violation) -ForegroundColor Red }
     exit 1
 }
-Write-Host ("dep_check: OK (checked " + $gdEntries.Count + " .gd files, " + $tscnEntries.Count + " .tscn files, " + $classLayer.Count + " classes)") -ForegroundColor Green
+Write-Host ("dep_check: OK (checked " + $gdEntries.Count + " .gd files, " + $tscnEntries.Count + " scene files, " + $classLayer.Count + " classes)") -ForegroundColor Green
 exit 0

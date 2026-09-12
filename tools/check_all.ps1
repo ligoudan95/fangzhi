@@ -9,6 +9,10 @@ foreach ($d in $srcDirs) {
     $p = Join-Path $root $d
     if (Test-Path $p) { $dirs += $p }
 }
+$generatedConfigTypes = Join-Path $root "scripts\config\config_types.gd"
+$formatFiles = Get-ChildItem $dirs -Recurse -Filter "*.gd" -File |
+    Where-Object { $_.FullName -ne $generatedConfigTypes } |
+    ForEach-Object { $_.FullName }
 $failed = $false
 $uvx = $null
 if (Get-Command uvx -ErrorAction SilentlyContinue) { $uvx = (Get-Command uvx).Source }
@@ -32,11 +36,11 @@ if ($LASTEXITCODE -ne 0) { $failed = $true }
 
 Write-Host "=== 4/7 gdformat --check ===" -ForegroundColor Cyan
 if (Get-Command gdformat -ErrorAction SilentlyContinue) {
-    & gdformat --check $dirs
+    & gdformat --check $formatFiles
     if ($LASTEXITCODE -ne 0) { $failed = $true }
 } else {
     if ($uvx) {
-        & $uvx --from "gdtoolkit==4.*" gdformat --check $dirs
+        & $uvx --from "gdtoolkit==4.*" gdformat --check $formatFiles
         if ($LASTEXITCODE -ne 0) { $failed = $true }
     } else {
         Write-Host "SKIP: gdformat not installed (install uv or gdtoolkit)" -ForegroundColor Yellow
