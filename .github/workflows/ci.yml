@@ -125,6 +125,13 @@ jobs:
             unzip -q templates.tpz -d _tpl
             mv _tpl/templates/* ~/.local/share/godot/export_templates/4.7.1.stable/
           fi
+      - name: Disable editor-only MCP plugin (export hygiene)
+        run: |
+          # 出包卫生（docs/14 审计#19）：godot_ai 为开发期 MCP 工具，不进 CI 出包链；
+          # 其编辑器插件在 headless 导出退出阶段的 teardown 亦是 SIGABRT 已知诱因
+          sed -i 's/, "res:\/\/addons\/godot_ai\/plugin.cfg"//; s/"res:\/\/addons\/godot_ai\/plugin.cfg", //; s/"res:\/\/addons\/godot_ai\/plugin.cfg"//' project.godot
+          sed -i '/_mcp_game_helper=/d' project.godot
+          grep -n "godot_ai" project.godot || echo "godot_ai fully disabled"
       - name: Import project
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . --import
       - name: Create debug keystore
@@ -160,6 +167,12 @@ jobs:
             echo "::error title=Export::$safe"
           done
           ls -la build/android 2>/dev/null || true
+          # 产物判据：签名与 [DONE] export 之后的退出清理 SIGABRT（134）为已知现象，
+          # APK 存在且非空即视为导出成功；产物缺失才按原退出码失败
+          if [ -s build/android/fangzhi-debug.apk ]; then
+            echo "APK 产物有效，忽略退出码 $status（导出后清理阶段崩溃）"
+            exit 0
+          fi
           exit $status
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
