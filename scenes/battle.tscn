@@ -32,7 +32,7 @@ script = ExtResource("1_safearea")
 
 [node name="VBox" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 20
 
 [node name="Title" type="Label" parent="Margin/VBox"]
 layout_mode = 2
@@ -103,23 +103,32 @@ item_count = 0
 
 [node name="SpeedButton" type="Button" parent="Margin/VBox/Toolbar"]
 layout_mode = 2
-custom_minimum_size = Vector2(96, 0)
+custom_minimum_size = Vector2(96, 72)
+theme_override_font_sizes/font_size = 30
 text = "1x"
 
 [node name="SkipButton" type="Button" parent="Margin/VBox/Toolbar"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 72)
+theme_override_font_sizes/font_size = 30
 text = "跳过"
 
 [node name="ReplayButton" type="Button" parent="Margin/VBox/Toolbar"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 72)
+theme_override_font_sizes/font_size = 30
 text = "重播"
 
 [node name="NewBattleButton" type="Button" parent="Margin/VBox/Toolbar"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 72)
+theme_override_font_sizes/font_size = 30
 text = "新战斗"
 
 [node name="SettingsButton" type="Button" parent="Margin/VBox/Toolbar"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 72)
+theme_override_font_sizes/font_size = 30
 text = "设置"
 
 [node name="NumberLayer" type="Control" parent="."]
