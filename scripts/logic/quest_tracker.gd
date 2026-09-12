@@ -67,6 +67,9 @@ static func add_progress(
 	var next := _clone_state(state)
 	if goal_type <= 0 or amount <= 0:
 		return {"state": next, "done": [], "progressed": false}
+	# 所有章节完成后停止计数，防无界增长
+	if active_quest(next, quests).is_empty():
+		return {"state": next, "done": [], "progressed": false}
 	var type_key := "g%d" % goal_type
 	next.counters[type_key] = int(next.counters.get(type_key, 0)) + amount
 	var specific_key := "g%d:t%d" % [goal_type, target_id]

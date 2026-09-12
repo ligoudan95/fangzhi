@@ -88,7 +88,7 @@ func test_vertical_slice_first_hour() -> void:
 	assert_bool(session2.load_game()).is_true()
 	var offline_at := now + 3600
 	var report: Dictionary = session2.settle_offline(offline_at)
-	assert_int(report.outputs.size()).is_greater_equal(1)
+	assert_int(report.crops.outputs.size()).is_greater_equal(1)
 	var storage_total := 0
 	for s in session2.data.village.storage:
 		storage_total += int(s.amount)

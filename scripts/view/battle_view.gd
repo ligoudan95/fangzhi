@@ -31,6 +31,8 @@ var _actor_by_uid: Dictionary = {}
 var _number_pool: Array[Label] = []
 var _snapping := false
 var _number_seq := 0
+var _battlefield_origin := Vector2.ZERO
+var _battlefield_origin_valid := false
 var _uid_pet := {}
 
 @onready var title_label: Label = $Margin/VBox/Title
@@ -388,22 +390,34 @@ func _flash(uid: int, color: Color) -> void:
 	var slot = _actor_by_uid.get(uid)
 	if slot == null:
 		return
-	var tween: Tween = slot.create_tween()
+	# 杀已有 flash tween 防闪烁叠加（快速连击时旧 tween 未完会被覆盖）
+	if slot.has_meta("flash_tween") and slot.get_meta("flash_tween") is Tween:
+		var old: Tween = slot.get_meta("flash_tween")
+		if old.is_valid():
+			old.kill()
+	slot.set_meta("flash_tween", slot.create_tween())
+	var tween: Tween = slot.get_meta("flash_tween")
 	slot.modulate = color
 	tween.tween_property(slot, "modulate", Color.WHITE, 0.18)
 
 
 ## 震屏只动 Battlefield，不动 HUD 与安全区（docs/10 §11）；减少动态时跳过（docs/23 §2）
+## 防累计漂移：记录真实原点，连震时杀旧 tween 再从原点开始
+
+
 func _shake_battlefield(px: float) -> void:
 	if _reduce_motion():
 		return
 	var battlefield: Control = $Margin/VBox/Battlefield
-	var origin := battlefield.position
+	if not _battlefield_origin_valid:
+		_battlefield_origin = battlefield.position
+		_battlefield_origin_valid = true
 	var tween := battlefield.create_tween()
+	tween.finished.connect(func() -> void: _battlefield_origin_valid = false)
 	for i in 3:
 		var offset := Vector2(px if i % 2 == 0 else -px, 0)
-		tween.tween_property(battlefield, "position", origin + offset, 0.04)
-	tween.tween_property(battlefield, "position", origin, 0.05)
+		tween.tween_property(battlefield, "position", _battlefield_origin + offset, 0.04)
+	tween.tween_property(battlefield, "position", _battlefield_origin, 0.05)
 
 
 ## 池化伤害数字（docs/10 §11）：复用 Label，上浮淡出后回收

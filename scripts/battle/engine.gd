@@ -228,6 +228,15 @@ func _alive_count(side: int) -> int:
 
 
 func run() -> Dictionary:
+	## 重入守卫：outcome 已定时直接返回既有结果（防日志/事件二次污染）
+	if outcome != "":
+		return {
+			"outcome": outcome,
+			"rounds": round_num,
+			"log": log_lines,
+			"events": events,
+			"capturedPetId": captured_pet_id,
+		}
 	var start_units: Array = []
 	for u in units:
 		start_units.append(

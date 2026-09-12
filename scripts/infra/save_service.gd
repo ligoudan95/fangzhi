@@ -69,8 +69,10 @@ func save_slot(slot: String, data: Dictionary) -> Dictionary:
 		}
 	var envelope_data := data.duplicate(true)
 	var generation := expected + 1
+	## checksum：先 JSON 往返再规范化——与 load 侧看到完全相同的类型表示（docs/15 §3.1）
+	var roundtrip: Variant = JSON.parse_string(JSON.stringify(envelope_data))
 	var checksum := _checksum_text(
-		_canonicalize({"version": SAVE_VERSION, "generation": generation, "data": envelope_data})
+		_canonicalize({"version": SAVE_VERSION, "generation": generation, "data": roundtrip})
 	)
 	var envelope := {
 		"version": SAVE_VERSION,
@@ -224,7 +226,8 @@ func _write_envelope(slot: String, envelope: Dictionary) -> bool:
 	return atomic_write(slot_path(slot), JSON.stringify(envelope))
 
 
-## 校验用 checksum：只对 {version, generation, data} 规范化（不含 checksum 字段自身）
+## 校验用 checksum：从已解析 envelope 规范化（不含 checksum 字段自身）。
+## save 侧先经 JSON 往返再规范化，两侧类型表示一致（消除 int→float 差异）。
 func _envelope_checksum(envelope: Dictionary) -> String:
 	return _checksum_text(
 		_canonicalize(

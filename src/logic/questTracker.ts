@@ -77,6 +77,8 @@ export function addProgress(
 ): { state: QuestState; done: QuestRow[]; progressed: boolean } {
   const next = cloneState(state);
   if (goalType <= 0 || amount <= 0) return { state: next, done: [], progressed: false };
+  // 所有章节完成（activeQuest 为 null）后停止计数，防无界增长
+  if (activeQuest(next, quests) === null) return { state: next, done: [], progressed: false };
   const typeKey = `g${goalType}`;
   next.counters[typeKey] = (next.counters[typeKey] ?? 0) + amount;
   const specificKey = `g${goalType}:t${targetId}`;

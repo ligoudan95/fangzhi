@@ -263,7 +263,7 @@ func _on_farm_skip_pressed() -> void:
 	var now := int(Time.get_unix_time_from_system())
 	var report: Dictionary = session.settle_offline(now + 3600)
 	var lines: Array = []
-	for o in report.outputs:
+	for o in report.crops.outputs:
 		lines.append("收获 物品%d ×%d" % [int(o.itemId), int(o.amount)])
 	farm_info.text = "；".join(lines) if not lines.is_empty() else "暂无产出"
 	_refresh_farm()

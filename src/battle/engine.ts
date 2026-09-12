@@ -136,6 +136,10 @@ export class Battle {
   private alliesOf(u: Unit): Unit[] { return this.units.filter(x => x.side === u.side && x.alive); }
 
   run(): BattleResult {
+    // 重入守卫：outcome 已定时直接返回既有结果（防日志/事件二次污染）
+    if (this.outcome) {
+      return { outcome: this.outcome, rounds: this.round, log: this.log, events: this.events, capturedPetId: this.capturedPetId };
+    }
     this.ev({
       t: 'start', units: this.units.map(u => ({
         u: u.uid, s: u.side, n: u.name, hp: u.stats.hp, el: u.element,

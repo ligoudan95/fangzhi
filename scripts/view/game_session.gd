@@ -16,6 +16,7 @@ var _tables: Dictionary = {}
 var _quests: Array = []
 var _village_config: Dictionary = {}
 var _equip_config: Dictionary = {}
+var _battle_cfg: Dictionary = {}
 
 
 func _init(save_service: Node = null, tables_dir: String = "res://resources/config/") -> void:
@@ -39,7 +40,10 @@ func _build_village_config() -> void:
 		}
 	var seasons := {}
 	for s in _tables.get("SeasonWeather", []):
-		seasons[int(s.seasonId)] = {"farmMult": float(s.farmMult)}
+		seasons[int(s.seasonId)] = {"farmMult": float(s.farmMult), "mineMult": float(s.mineMult)}
+	var mines := {}
+	for m in _tables.get("Mine", []):
+		mines[int(m.mineId)] = m
 	var category_of := {}
 	for i in _tables.get("ItemBase", []):
 		category_of[int(i.itemId)] = int(i.storageCategory)
@@ -50,6 +54,7 @@ func _build_village_config() -> void:
 	_village_config = {
 		"crops": crops,
 		"seasons": seasons,
+		"mines": mines,
 		"categoryOf": category_of,
 		"storageRules": rules,
 		"g": g,
@@ -198,8 +203,10 @@ func plant_crop(slot_id: int, crop_id: int, now_utc: int) -> bool:
 	return true
 
 
-## 离线/回归结算：作物成熟收获入库 → 任务 goalType 5；返回结算报告
+## 离线/回归结算：作物→任务 g5 + 矿场→钱包/库存 + 兽潮→波次报告；返回汇总
 func settle_offline(now_utc: int) -> Dictionary:
+	var report := {}
+	# ① 作物（docs/15 §2）
 	var cursor := int(data.settlement.cursors.villageProductionUtcSec)
 	var res: Dictionary = VillageProduction.settle_crops(
 		data.village.fields, cursor, now_utc, data.village.storage, _village_config
@@ -209,6 +216,45 @@ func settle_offline(now_utc: int) -> Dictionary:
 	data.village.storage = res.inventory
 	for o in res.outputs:
 		_apply_quest(5, int(o.itemId), 1)
+	report["crops"] = res
+	# ② 矿场（docs/26 §4.3）
+	var mine_res: Dictionary = MineProduction.settle_mines(
+		data.village.mineJobs, cursor, now_utc, data.wallet, data.village.storage, _village_config
+	)
+	data.wallet = mine_res.wallet
+	data.village.storage = mine_res.inventory
+	report["mines"] = mine_res
+	# ③ 兽潮错过补结算（docs/26 §4.5，docs/15 §1.5）
+	if data.pets.size() > 0:
+		var tide_cursor := int(data.settlement.cursors.beastTideUtcSec)
+		var team: Array = _build_defense_team()
+		var g: Dictionary = _tables.get("GlobalConst", {})
+		var tide_res: Dictionary = BeastTide.settle_missed(
+			tide_cursor,
+			now_utc,
+			28800,
+			int(data.rng.rootSeed),
+			team,
+			_tables,
+			_build_battle_cfg(),
+			g
+		)
+		data.settlement.cursors.beastTideUtcSec = tide_res.nextCursor
+		report["beastTide"] = tide_res
 	data.meta.updatedAtUtcSec = now_utc
 	data.meta.lastObservedUtcSec = now_utc
-	return res
+	return report
+
+
+func _build_defense_team() -> Array:
+	var team: Array = []
+	var cfg := _build_battle_cfg()
+	for pet in data.pets:
+		team.append(BattleSetup.make_pet_input(cfg, int(pet.petId), int(pet.level), 900, 0))
+	return team
+
+
+func _build_battle_cfg() -> Dictionary:
+	if _battle_cfg.is_empty():
+		_battle_cfg = BattleSetup.build_cfg(_tables)
+	return _battle_cfg
