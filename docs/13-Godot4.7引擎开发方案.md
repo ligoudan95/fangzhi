@@ -1,8 +1,9 @@
 # 13-Godot 4.7 引擎开发方案
 
-> **版本**：v0.1　**日期**：2026-09-08
-> **性质**：引擎选型变更方案——客户端引擎由 Cocos Creator 3.8（07 文档原案）改为 **Godot 4.7.1 stable**
+> **版本**：v0.3　**日期**：2026-09-12
+> **性质**：客户端 **Godot 4.7.1 stable** 定稿方案（原 Cocos Creator 3.8 方案已废止）
 > **依据**：决策 #1（TapTap 竖屏买断单机）、#3（纯单机）、#9（竖屏）；07/10/11/12 文档的分层架构、演出、音频、导表规范继续有效，涉及引擎绑定的部分以本文档为准
+> **美术表现定稿**：不使用 Spine/骨骼动画或对应插件；统一使用静态贴图、Tween、受限序列帧和少量粒子（详见 10 §3~§11）
 
 ---
 
@@ -14,7 +15,7 @@
 | 平台覆盖 | Android / iOS / Windows / macOS / Linux / Web 一键导出 | TapTap 双端首发，未来 Steam 版与 Web 试玩版**同一工程直接导出**（Cocos 需维护双技术栈） |
 | 2D 能力 | 场景树 + Control 节点天然适合 UI 密集的竖屏放置游戏 | 自定义 UI 组件（掉宝结算屏/装备对比浮窗）无第三方依赖 |
 | 编辑器 | 轻量（<200MB）、纯文本场景（.tscn）可 Git diff | 策划也能看懂场景改动，协作友好 |
-| 生态 | Spine 官方 GDExtension、ResourceLoader 分包成熟 | 对接 10 文档骨骼动画规范 |
+| 2D 表现 | `Sprite2D` / `AnimatedSprite2D` / Tween / `AnimationPlayer` / `GPUParticles2D` 均为内置能力 | 对接 10 文档静态贴图与轻量序列帧规范，无第三方动画运行时 |
 
 **代价与对策**：国内 TapTap 渠道无官方 SDK 一键集成（见 §9，纯买断几乎不需要）；社区资源少于 Cocos——用导表驱动数据（12 文档）降低引擎侧复杂度来对冲。
 
@@ -44,8 +45,8 @@ res://
 │   └─ ui/               # 掉宝开箱结算屏、装备对比浮窗等组件
 ├─ resources/
 │   ├─ config/           # 导表产物 JSON（构建时由 tools/export 回填，勿手改）
-│   └— themes/           # 石板浮雕 UI 主题（10 文档 §5）
-├─ assets/               # spine/ fx/ audio/（命名规范见 10 文档 §9）
+│   └— themes/           # 石板浮雕 UI 主题（10 文档 §7）
+├─ assets/               # art/ frames/ fx/ ui/ audio/（命名规范见 10 文档 §10）
 └— tests/                # gdUnit4 单测 + 引擎对拍
 ```
 
@@ -60,7 +61,7 @@ res://
 |------|------|
 | 项目分辨率 | 1080 × 1920（竖屏基准） |
 | Stretch Mode | `canvas_items` + Aspect `expand`（异形屏安全，UI 不裁切） |
-| 安全区 | 上下 80px SafeArea 容器（10 文档 §5）；`DisplayServer.get_display_safe_area()` 动态取 |
+| 安全区 | 上下 80px SafeArea 容器（10 文档 §7）；`DisplayServer.get_display_safe_area()` 动态取 |
 | 手势 | 村落单屏禁横向滚动；二级页用 `NavigationStack` 式推拉门 |
 
 ## 5. 数据管线衔接（12 文档）
@@ -69,7 +70,7 @@ res://
 tables/*.csv ──npm run export──→ out/config/*.json ──构建脚本拷贝──→ res://resources/config/
 ```
 
-- Godot 侧 `ConfigService` 用 `FileAccess.get_file_as_string()` + `JSON.parse_string()` 启动加载（首包表先行，荒域表懒加载）
+- Godot 侧 `ConfigService` 用 `FileAccess.get_file_as_string()` + `JSON.parse_string()` 加载；全部首发配置随基础包安装，启动先加载核心表，其余配置按场景从本地包延迟载入内存
 - **禁止**在 Godot 编辑器内手改 .tres 数值——所有数值走表（12 文档红线）；.tres 只用于主题、动画、粒子等表现资源
 - `out/types.d.ts` 对应生成一份 `config_types.gd`（导表工具 Phase 0 余项补上），GDScript 侧获得类型提示
 
@@ -84,14 +85,16 @@ tables/*.csv ──npm run export──→ out/config/*.json ──构建脚本�
 ```
 
 - 对拍范围：公式数值（伤害/捕捉/资质 roll）、状态效果时序、AI 决策顺序
-- TS 版退役时机：对拍连续 4 周全绿后，GDScript 版成为唯一真源，TS 版转归档
-- 现有 15 项测试的断言口径全部平移到 gdUnit4
+- TS 版暂不退役；是否归档须以连续 4 周对拍记录和覆盖审计另行决策，不能由历史“全绿”描述替代
+- GdUnit4 已有 TS 基准对应断言；覆盖范围以测试清单为准，不代表 `docs/03` 全部战斗规则已实现
 
-## 7. Spine 动画（10 文档 §7）
+## 7. 静态贴图与序列帧表现（10 文档 §3~§11）
 
-- 使用 Esoteric 官方 **spine-godot 4.x GDExtension**（版本随 4.7 兼容线锁定）
-- 四类基础骨架（四足/飞行/爬行/人形）的骨骼件直接复用 10 文档规范
-- 村落场景同屏 Spine ≤ 8 个（07 文档内存目标不变）；打工三件套动作用 AnimationTracker 复用轨道
+- 角色主体使用 `Sprite2D` 静态透明贴图；位置、缩放、旋转、透明度和颜色反馈统一由 Tween 驱动
+- 轮廓变化明显的主推宠可用 `AnimatedSprite2D` / `SpriteFrames`：常规 4~8 帧，关键最多 12 帧；普通角色不得依赖序列帧才能接入玩法
+- 多轨关键演出使用 `AnimationPlayer`；VFX 由五行通用模板组合，伤害数字、命中特效和飞行图标统一池化
+- 同屏活动序列帧节点硬上限 6、活动粒子硬上限 120；运行时角色纹理按实际显示尺寸降采样，禁止 4096² 常驻总图集
+- 表现随机使用事件序号哈希或独立视觉随机流，不得消耗 battle/掉落/资质的正式随机流
 
 ## 8. 音频（11 文档）
 
@@ -102,7 +105,7 @@ Godot AudioBus 直接映射五总线：`BGM / Amb / SFX_Battle / SFX_Work / UI`�
 | 能力 | 方案 |
 |------|------|
 | 分发与买断 | **无需 SDK**——玩家在 TapTap 商店购买下载，商店负责付费与更新（决策 #2 买断制红利） |
-| 数据统计（可选） | TapTD（TapTap 分析）Android/iOS SDK，经 GDExtension/Plugin 封装；仅埋点：留存/关卡流失/掉宝参与 |
+| 数据统计 | 首发不接入，保证完整离线；远期可选且必须经隐私评审，不得成为玩法或奖励条件 |
 | 版本更新 | 商店整包更新（无热更需求，纯单机决策 #3）；游戏内"检查更新"只跳商店页 |
 | 云存档 | 不做（纯单机）；手动导出/导入存档文件满足分享需求（07 §4） |
 
@@ -114,12 +117,13 @@ Godot AudioBus 直接映射五总线：`BGM / Amb / SFX_Battle / SFX_Work / UI`�
 
 | 平台 | 格式 | 目标 |
 |------|------|------|
-| Android | AAB（TapTap 提交）+ APK（测试） | 首包 ≤ 150MB；minSdk 26 / arm64-v8a 为主 |
+| Android | AAB（TapTap 提交）+ APK（测试） | 完整首发基础包目标 ≤ 400MB；minSdk 26 / arm64-v8a 为主 |
 | iOS | IPA | 同预算；Bitcode 无关（Godot 不需要） |
 | Windows/macOS | 桌面版（远期 Steam，决策 #1 备选） | 同工程直接导出，UI 已竖屏——以"竖屏窗口"形式发布，需单独做横屏评估 |
 
-- 导出模板：官方 stable 模板 + spine GDExtension 一起打包
-- PCK 分包：基础包（UI+石岭村+12 宠）/ 荒域包 / 音频包——`ProjectSettings` + 自建 loader，对应 07 §7 分包策略
+- 导出模板：仅使用官方 stable 模板；美术表现不附带第三方动画运行时或原生扩展
+- 首发基础包包含完整首发玩法、配置、美术与音频，安装后无需网络即可游玩；运行时按场景从本地包懒加载资源
+- PCK 按需下载只作为远期可选 DLC 方案，不得成为首发荒域或音频依赖
 
 ## 12. 测试策略（07 §9 的 Godot 落地）
 
@@ -128,21 +132,24 @@ Godot AudioBus 直接映射五总线：`BGM / Amb / SFX_Battle / SFX_Work / UI`�
 | 单元测试 | **gdUnit4**（GDScript 断言库，CI 可 headless 跑） |
 | 引擎对拍 | §6 机制，TS 侧 `npm run parity` 生成期望日志 |
 | 数值验收 | 02 文档锚点在 GDScript 侧重跑（战力曲线/捕捉分布） |
-| 真机 | 竖屏安全区 + 异形屏清单（10 §10 checklist 不变） |
+| 真机 | 竖屏安全区 + 异形屏 + 动态减弱 + 性能预算（10 §12 checklist） |
 
 ## 13. 迁移步骤（Phase 0 → Godot 工程）
 
-1. **D1-2**：`godot --headless` 建工程骨架：目录结构、Autoload 四件套、竖屏项目设置、bus 布局
-2. **D3-5**：`ConfigService` 读 `resources/config/*.json`；`stats.gd`（成长公式）移植 + 锚点测试过
-3. **D6-10**：`battle/` 移植（rng→mulberry32 gd 版、calcDamage、BuffSystem、AI）；对拍脚本上线，种子清单 100 个起
-4. **D11-12**：`battle.tscn` 最简演出（事件队列→文本演出即可）打通"配置→战斗→结果"全链
-5. **D13-14**：导出 Android APK 真机竖屏验证；gdUnit4 接入 CI
+1. **D1-2（待当次验收）**：工程骨架、目录、Autoload 四件套、竖屏项目设置与 bus 布局已入库
+2. **D3-5（待当次验收）**：`ConfigService`、`stats.gd` 与对应测试已入库；`config_types.gd` 生成仍为 Phase 0 余项
+3. **D6-10（待当次验收）**：TS 基准覆盖范围的 rng/伤害/基础 Buff/AI/捕捉与 100 种子 × 3 场景对拍设施已入库；不代表 `docs/03` 全量规则完成
+4. **D11-12（待当次验收）**：`battle.tscn` 最简文本回放已入库；正式结构化事件与视觉战斗仍为 Phase 0 余项
+5. **D13-14（部分完成）**：Android preset 与 gdUnit4/对拍 CI 已配置；APK job 仍非阻断，真机竖屏与安全区未验收
+
+统一状态、证据和阻塞关系见 `docs/14 §3-4`。
 
 ## 14. 风险与备选
 
 | 风险 | 缓解 |
 |------|------|
-| spine-godot 与 4.7 兼容滞后 | 锁 spine 运行时版本；最坏降级帧动画（10 §7 备选不变） |
+| 大尺寸静态贴图造成显存峰值 | 源图与运行时图分离；按实际显示尺寸降采样；大型背景线程加载，离开页面释放 |
+| 序列帧数量膨胀 | 普通角色静态主体即可接入；只为主推宠和关键 VFX 增配，严格执行 10 §11 帧数/同屏预算 |
 | GDScript 性能（大数据量表解析） | 启动一次解析后缓存 Dictionary；表 ≤ 百 KB 级无压力 |
 | iOS 导出链（需 Mac） | 团队无 Mac 则外包签名打包；工程侧保持 iOS preset 就绪 |
 | 团队 Godot 经验不足 | 导表驱动减少引擎侧代码；.tscn 文本化降低协作门槛；对拍机制兜底正确性 |
