@@ -145,6 +145,8 @@ jobs:
           export/android/debug_keystore_user = "androiddebugkey"
           export/android/debug_keystore_pass = "android"
           EOF
+      - name: Start adb daemon
+        run: /usr/local/lib/android/sdk/platform-tools/adb start-server
       - name: Export debug APK
         run: |
           set +e

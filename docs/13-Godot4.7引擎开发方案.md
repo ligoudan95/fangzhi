@@ -117,7 +117,7 @@ Godot AudioBus 直接映射五总线：`BGM / Amb / SFX_Battle / SFX_Work / UI`�
 
 | 平台 | 格式 | 目标 |
 |------|------|------|
-| Android | AAB（TapTap 提交）+ APK（测试） | 完整首发基础包目标 ≤ 400MB；minSdk 26 / arm64-v8a 为主 |
+| Android | AAB（TapTap 提交）+ APK（测试） | 完整首发基础包目标 ≤ 400MB；arm64-v8a；minSdk 跟随导出模板默认（覆盖至 26 需启用 Gradle 构建，暂缓） |
 | iOS | IPA | 同预算；Bitcode 无关（Godot 不需要） |
 | Windows/macOS | 桌面版（远期 Steam，决策 #1 备选） | 同工程直接导出，UI 已竖屏——以"竖屏窗口"形式发布，需单独做横屏评估 |
 
