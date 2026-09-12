@@ -27,6 +27,7 @@ var _last_result: Dictionary = {}
 var _actor_by_uid: Dictionary = {}
 var _number_pool: Array[Label] = []
 var _snapping := false
+var _number_seq := 0
 
 @onready var title_label: Label = $Margin/VBox/Title
 @onready var round_label: Label = $Margin/VBox/Round
@@ -53,6 +54,7 @@ func _setup_window() -> void:
 		return
 	var win := get_window()
 	win.min_size = Vector2i(324, 576)
+	win.size = Vector2i(594, 1056)
 	win.size_changed.connect(_snap_window_aspect)
 	_center_window()
 
@@ -72,6 +74,9 @@ func _snap_window_aspect() -> void:
 		return
 	_snapping = true
 	var win := get_window()
+	if win.mode == Window.MODE_MAXIMIZED or win.mode == Window.MODE_FULLSCREEN:
+		_snapping = false
+		return
 	var size := win.size
 	var usable := DisplayServer.screen_get_usable_rect(win.current_screen)
 	var target_h := int(round(float(size.x) / WINDOW_ASPECT))
@@ -266,7 +271,7 @@ func _make_actor_slot(uid: int, side: int, unit_name: String, hp: int, element: 
 	portrait.color = ELEMENT_COLORS.get(element, Color("#6E6A66"))
 	var name_label := Label.new()
 	name_label.text = ("[敌]" if side == 1 else "") + unit_name
-	name_label.add_theme_font_size_override("font_size", 24)
+	name_label.add_theme_font_size_override("font_size", 26)
 	name_label.add_theme_color_override("font_color", Color("#E9E2D0"))
 	name_label.add_theme_constant_override("outline_size", 2)
 	name_label.add_theme_color_override("font_outline_color", Color(0.1, 0.08, 0.06))
@@ -288,7 +293,7 @@ func _make_actor_slot(uid: int, side: int, unit_name: String, hp: int, element: 
 	hp_bar.add_theme_stylebox_override("fill", fill)
 	hp_bar.add_theme_stylebox_override("background", bg)
 	var skill_label := Label.new()
-	skill_label.add_theme_font_size_override("font_size", 22)
+	skill_label.add_theme_font_size_override("font_size", 26)
 	skill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	skill_label.modulate.a = 0.0
 	box.add_child(portrait)
@@ -345,10 +350,15 @@ func _spawn_number(uid: int, text: String, color: Color, font_size: int) -> void
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	label.modulate.a = 1.0
+	# 确定性散开：按 uid 哈希偏移防多数字完全重叠（不引入随机流，docs/15 §3.5）
+	_number_seq += 1
+	var jitter := Vector2(
+		float((uid * 13 + _number_seq * 7) % 54) - 27.0, float((uid * 7 + _number_seq * 11) % 14)
+	)
 	if slot != null:
-		label.position = slot.global_position + Vector2(60, -20)
+		label.position = slot.global_position + Vector2(slot.size.x * 0.5 - 80.0, -36.0) + jitter
 	else:
-		label.position = Vector2(480, 800)
+		label.position = Vector2(480, 800) + jitter
 	var tween := label.create_tween()
 	tween.set_parallel(true)
 	(
