@@ -1,21 +1,38 @@
-## doc: 13 §3 / §13 D11-12
-## 最简战斗演出——打通「配置 → 战斗 → 结果」：Config 表 → BattleSetup 组局 →
-## Battle headless 跑完 → BattlePlayback 逐行文本回放（1x/2x/跳过/重播同种子）。
-## View 零业务逻辑：只消费结果日志流；重播=同种子确定性复现。
+## doc: 10 §8 / 13 §3 D11-12 + M6 第一阶段
+## 战斗演出视图——消费结构化事件队列（docs/10 §8.1）：2×3 站位、Tween 动势、
+## 池化伤害数字、捕捉横幅；文本日志保留为战报（对拍与复盘口径）。
+## View 零业务逻辑：只消费 Battle 产物；无事件时回退纯文本回放（兼容旧测试注入）。
 extends Control
 
 ## 演示阵容：灰岩獒(坦) + 桃夭狐(疗) + 朱羽雉(输出)，与对拍场景一致
 const TEAM: Array = [[1001, 12, 900, 1], [1002, 12, 900, 1], [1005, 12, 950, 1]]
+## 五行属性色（docs/10 §2.1）：占位贴图着色，正式立绘到位后替换
+const ELEMENT_COLORS: Dictionary = {
+	1: Color("#E8B33C"),
+	2: Color("#6FBF4F"),
+	3: Color("#4F86E8"),
+	4: Color("#E8543C"),
+	5: Color("#C79A4B"),
+	6: Color("#7A4FD4"),
+	7: Color("#F5E7B8")
+}
 
 var _seed: int = 0
 var _playback: BattlePlayback
+var _events_playback: BattleEventPlayback
 var _last_result: Dictionary = {}
+var _actor_by_uid: Dictionary = {}
+var _number_pool: Array[Label] = []
 
 @onready var title_label: Label = $Margin/VBox/Title
+@onready var round_label: Label = $Margin/VBox/Round
 @onready var stage_option: OptionButton = $Margin/VBox/Toolbar/StageOption
 @onready var log_text: RichTextLabel = $Margin/VBox/LogScroll/LogText
 @onready var result_label: Label = $Margin/VBox/Result
 @onready var speed_button: Button = $Margin/VBox/Toolbar/SpeedButton
+@onready var enemy_row: HBoxContainer = $Margin/VBox/Battlefield/EnemyRow
+@onready var ally_row: HBoxContainer = $Margin/VBox/Battlefield/AllyRow
+@onready var number_layer: Control = $NumberLayer
 
 
 func _ready() -> void:
@@ -25,26 +42,280 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if _playback == null or _playback.is_done():
+	if _playback == null:
 		return
-	for line in _playback.tick(delta):
-		_append_line(line)
+	if not _playback.is_done():
+		for line in _playback.tick(delta):
+			_append_line(line)
+	if _events_playback != null and not _events_playback.is_done():
+		for e in _events_playback.tick(delta):
+			_apply_event(e)
 
 
-## 直接注入结果回放（测试/外部驱动用，不经 Config 与随机种子）
+## 直接注入结果回放（测试/外部驱动用）；事件存在时驱动站位演出，日志仅作战报
 func start_result(result: Dictionary, stage_title: String = "") -> void:
 	_last_result = result
 	title_label.text = stage_title
 	log_text.text = ""
 	result_label.text = ""
-	_playback = BattlePlayback.new(result.log)
+	round_label.text = ""
+	_actor_by_uid = {}
+	for child in enemy_row.get_children():
+		child.queue_free()
+	for child in ally_row.get_children():
+		child.queue_free()
+	_playback = BattlePlayback.new(result.get("log", []))
 	_playback.finished.connect(_show_result)
-	if result.log.is_empty():
-		_show_result()
+	var events: Array = result.get("events", [])
+	if not events.is_empty():
+		_events_playback = BattleEventPlayback.new(events)
+		_events_playback.finished.connect(_show_result)
+	else:
+		_events_playback = null
+		if result.get("log", []).is_empty():
+			_show_result()
 
 
 func _append_line(line: String) -> void:
 	log_text.text += line + "\n"
+
+
+## ---------- 事件应用（docs/10 §8.2 通用反馈） ----------
+
+
+func _apply_event(e: Dictionary) -> void:
+	match String(e.get("t", "")):
+		"start":
+			_on_start(e)
+		"round":
+			round_label.text = "第 %d 回合" % int(e.r)
+		"cast":
+			_on_cast(e)
+		"hit":
+			_on_hit(e)
+		"dodge":
+			_spawn_number(int(e.u), "闪避", Color("#D8D8D8"), 22)
+		"heal":
+			_on_heal(e)
+		"shield":
+			_spawn_number(int(e.u), "+盾 %d" % int(e.a), Color("#4F9DE8"), 24)
+			_flash(int(e.u), Color("#4F9DE8"))
+		"buff":
+			_spawn_number(int(e.u), "【%s】" % String(e.b), Color("#A64FE8"), 20)
+		"death":
+			_on_death(int(e.u))
+		"sub":
+			_on_sub(e)
+		"cap":
+			_on_capture(e)
+		"end":
+			round_label.text = ""
+
+
+func _on_start(e: Dictionary) -> void:
+	for unit in e.get("units", []):
+		_make_actor_slot(int(unit.u), int(unit.s), String(unit.n), int(unit.hp), int(unit.el))
+
+
+func _on_cast(e: Dictionary) -> void:
+	var slot = _actor_by_uid.get(int(e.u))
+	if slot == null:
+		return
+	var panel: PanelContainer = slot
+	var dir := -36.0 if int(panel.get_meta("side")) == 0 else 36.0
+	var base_y := panel.position.y
+	var tween := panel.create_tween()
+	(
+		tween
+		. tween_property(panel, "position:y", base_y + dir, 0.12)
+		. set_trans(Tween.TRANS_CUBIC)
+		. set_ease(Tween.EASE_OUT)
+	)
+	tween.tween_property(panel, "position:y", base_y, 0.16).set_trans(Tween.TRANS_CUBIC).set_ease(
+		Tween.EASE_IN
+	)
+	var skill_label: Label = panel.get_meta("skill_label")
+	skill_label.text = "【%s】" % String(e.get("s", ""))
+	skill_label.modulate.a = 1.0
+	var fade := panel.create_tween()
+	fade.tween_interval(0.5)
+	fade.tween_property(skill_label, "modulate:a", 0.0, 0.3)
+
+
+func _on_hit(e: Dictionary) -> void:
+	var uid := int(e.u)
+	var dmg := int(e.d)
+	var crit := int(e.c) == 1
+	_update_hp(uid, int(e.hp))
+	if dmg > 0:
+		_spawn_number(
+			uid, str(dmg), Color("#F0923C") if crit else Color("#E9E2D0"), 40 if crit else 30
+		)
+		_flash(uid, Color(2.2, 2.2, 2.2))
+		_shake_battlefield(6.0 if crit else 3.0)
+	else:
+		_spawn_number(uid, "盾", Color("#4F9DE8"), 22)
+
+
+func _on_heal(e: Dictionary) -> void:
+	_update_hp(int(e.u), int(e.hp))
+	_spawn_number(int(e.u), "+%d" % int(e.a), Color("#52C462"), 30)
+	_flash(int(e.u), Color("#52C462"))
+
+
+func _on_death(uid: int) -> void:
+	var slot = _actor_by_uid.get(uid)
+	if slot == null:
+		return
+	var panel: PanelContainer = slot
+	var tween := panel.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(panel, "modulate", Color(0.35, 0.35, 0.35, 0.45), 0.45)
+	tween.tween_property(panel, "position:y", panel.position.y + 20.0, 0.45)
+	slot.set_meta("alive", false)
+
+
+func _on_sub(e: Dictionary) -> void:
+	_make_actor_slot(int(e.u), int(e.s), String(e.n), 1, 0)
+	_spawn_number(int(e.u), "替补入场", Color("#F5E7B8"), 24)
+
+
+func _on_capture(e: Dictionary) -> void:
+	var ok := int(e.ok) == 1
+	var banner := Label.new()
+	banner.text = "收服！%d%%" % int(e.rt) if ok else "挣脱了…%d%%" % int(e.rt)
+	banner.add_theme_font_size_override("font_size", 44 if ok else 30)
+	banner.add_theme_color_override("font_color", Color("#F0923C") if ok else Color("#D8D8D8"))
+	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	banner.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	banner.position = Vector2(290, 640)
+	number_layer.add_child(banner)
+	var tween := banner.create_tween()
+	tween.set_parallel(true)
+	(
+		tween
+		. tween_property(banner, "scale", Vector2(1.15, 1.15), 0.3)
+		. set_trans(Tween.TRANS_BACK)
+		. set_ease(Tween.EASE_OUT)
+	)
+	tween.tween_property(banner, "modulate:a", 0.0, 0.9).set_delay(0.4)
+	tween.chain().tween_callback(banner.queue_free)
+
+
+## ---------- 站位与表现 ----------
+
+
+func _make_actor_slot(uid: int, side: int, unit_name: String, hp: int, element: int) -> void:
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(200, 240)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 6)
+	var portrait := ColorRect.new()
+	portrait.custom_minimum_size = Vector2(160, 150)
+	portrait.color = ELEMENT_COLORS.get(element, Color("#6E6A66"))
+	var name_label := Label.new()
+	name_label.text = ("[敌]" if side == 1 else "") + unit_name
+	name_label.add_theme_font_size_override("font_size", 22)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var hp_bar := ProgressBar.new()
+	hp_bar.min_value = 0
+	hp_bar.max_value = hp
+	hp_bar.value = hp
+	hp_bar.show_percentage = false
+	hp_bar.custom_minimum_size = Vector2(180, 18)
+	var skill_label := Label.new()
+	skill_label.add_theme_font_size_override("font_size", 20)
+	skill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	skill_label.modulate.a = 0.0
+	box.add_child(portrait)
+	box.add_child(name_label)
+	box.add_child(hp_bar)
+	box.add_child(skill_label)
+	panel.add_child(box)
+	panel.set_meta("hp_bar", hp_bar)
+	panel.set_meta("skill_label", skill_label)
+	panel.set_meta("alive", true)
+	panel.set_meta("side", side)
+	var row: HBoxContainer = enemy_row if side == 1 else ally_row
+	row.add_child(panel)
+	_actor_by_uid[uid] = panel
+
+
+func _update_hp(uid: int, hp: int) -> void:
+	var slot = _actor_by_uid.get(uid)
+	if slot == null:
+		return
+	var hp_bar: ProgressBar = slot.get_meta("hp_bar")
+	hp_bar.value = maxf(0.0, float(hp))
+
+
+func _flash(uid: int, color: Color) -> void:
+	if _reduce_motion():
+		return
+	var slot = _actor_by_uid.get(uid)
+	if slot == null:
+		return
+	var tween: Tween = slot.create_tween()
+	slot.modulate = color
+	tween.tween_property(slot, "modulate", Color.WHITE, 0.18)
+
+
+## 震屏只动 Battlefield，不动 HUD 与安全区（docs/10 §11）；减少动态时跳过（docs/23 §2）
+func _shake_battlefield(px: float) -> void:
+	if _reduce_motion():
+		return
+	var battlefield: Control = $Margin/VBox/Battlefield
+	var origin := battlefield.position
+	var tween := battlefield.create_tween()
+	for i in 3:
+		var offset := Vector2(px if i % 2 == 0 else -px, 0)
+		tween.tween_property(battlefield, "position", origin + offset, 0.04)
+	tween.tween_property(battlefield, "position", origin, 0.05)
+
+
+## 池化伤害数字（docs/10 §11）：复用 Label，上浮淡出后回收
+func _spawn_number(uid: int, text: String, color: Color, font_size: int) -> void:
+	var slot = _actor_by_uid.get(uid)
+	var label: Label = _acquire_number()
+	label.text = text
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", color)
+	label.modulate.a = 1.0
+	if slot != null:
+		label.position = slot.global_position + Vector2(60, -20)
+	else:
+		label.position = Vector2(480, 800)
+	var tween := label.create_tween()
+	tween.set_parallel(true)
+	(
+		tween
+		. tween_property(label, "position:y", label.position.y - 64.0, 0.55)
+		. set_trans(Tween.TRANS_CUBIC)
+		. set_ease(Tween.EASE_OUT)
+	)
+	tween.tween_property(label, "modulate:a", 0.0, 0.55).set_delay(0.15)
+	tween.chain().tween_callback(func() -> void: _release_number(label))
+
+
+func _acquire_number() -> Label:
+	for label in _number_pool:
+		if not label.is_visible_in_tree() and label.modulate.a <= 0.01:
+			label.visible = true
+			return label
+	var label := Label.new()
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.custom_minimum_size = Vector2(160, 40)
+	number_layer.add_child(label)
+	_number_pool.append(label)
+	return label
+
+
+func _release_number(label: Label) -> void:
+	label.modulate.a = 0.0
+	label.visible = false
+
+
+## ---------- 组局与控制（沿用 D11-12 口径） ----------
 
 
 ## 配置→战斗：Config 表组局，选中场次首波敌人
@@ -110,6 +381,8 @@ func _on_speed_pressed() -> void:
 	if _playback == null:
 		return
 	_playback.speed = 2.0 if _playback.speed == 1.0 else 1.0
+	if _events_playback != null:
+		_events_playback.speed = _playback.speed
 	speed_button.text = "2x" if _playback.speed == 2.0 else "1x"
 
 
@@ -118,6 +391,9 @@ func _on_skip_pressed() -> void:
 		return
 	for line in _playback.skip():
 		_append_line(line)
+	if _events_playback != null:
+		for e in _events_playback.skip():
+			_apply_event(e)
 
 
 func _on_replay_pressed() -> void:
@@ -126,3 +402,14 @@ func _on_replay_pressed() -> void:
 
 func _on_new_battle_pressed() -> void:
 	_new_battle()
+
+
+## 设置浮层（docs/23）：模态覆盖，关闭即释放；View 层不落业务状态
+func _on_settings_pressed() -> void:
+	var overlay: CanvasLayer = preload("res://scripts/view/settings_view.gd").new()
+	add_child(overlay)
+
+
+## 减少动态（docs/23 §2）：关闭震屏与快速闪烁
+func _reduce_motion() -> bool:
+	return bool(SettingsStore.load_settings().reduce_motion)

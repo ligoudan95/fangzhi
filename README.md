@@ -2,7 +2,9 @@
 
 中国古代玄幻（莽荒）捉宠放置游戏。TapTap 竖屏买断单机（决策见 `docs/01-游戏整体框架设计.md` 第 19 章）。
 
-本仓库当前为 **Phase 0 垂直切片**：导表管线 + headless 确定性战斗引擎 + 数值校验测试，全部可运行。客户端引擎已定为 **Godot 4.7.1**（`docs/13-Godot4.7引擎开发方案.md`），本 TS 引擎保留为**数值验收基准**，与 Godot 版做同种子对拍。
+本仓库当前处于 **Phase 0 垂直切片开发中**：TS 导表管线与 headless 战斗基准已落地，Godot 已接入确定性战斗基线和最简文本回放；正式视觉战斗、掉落 roll、村落生产、完整存档迁移、时间服务与真机验收仍未完成。客户端引擎已定为 **Godot 4.7.1**（`docs/13-Godot4.7引擎开发方案.md`），TS 引擎继续作为数值验收基准，与 Godot 版做同种子对拍。
+
+美术表现已于 2026-09-12 定稿：**不使用 Spine/骨骼动画**，统一采用静态岩彩贴图、Tween、少量拆件、受限序列帧和粒子；完整资产、演出与性能规范见 `docs/10-美术设计规范.md` v0.2。
 
 ## 快速开始
 
@@ -17,7 +19,7 @@ npm run demo     # 演示：一场关卡战斗 + 捕捉公式样例 + 关卡战�
 ## 目录结构（对应 docs/07 §8）
 
 ```
-docs/            设计文档 01-12（唯一需求来源，v0.1）
+docs/            设计规则 01-15 + 台账 14 + 产品流程档案 16-24（版本矩阵见 docs/14 §2）
 tables/          策划数据源：11 张 CSV（四行表头规范见 docs/12 §1）
 tools/export/    导表工具：CSV 解析 + 校验(V-101~501) + JSON/d.ts + 平衡报表(V-401)
 src/battle/      确定性战斗引擎：公式/状态/AI/捕捉（docs/03，可 headless）
@@ -44,12 +46,18 @@ out/             导出产物（JSON 配置 / types.d.ts / report.md 平衡报�
 
 ## 下一步（Phase 0 余项 → Phase 1）
 
-- [ ] 装备掉落 roll（DropRule 已有表，缺 roll 器与未鉴定封装）
-- [ ] 村落生产 tick（Crop/Recipe 半成品表，体力心情模型）
-- [ ] 存档结构与迁移链（SaveService）
+- [x] 正式视觉演出第一阶段（docs/10 §8，M6）：双端结构化战斗事件（12 类 + 对拍摘要）、`battle.tscn` 2×3 站位 + Tween 动势 + 池化伤害数字 + 震屏、动态 SafeArea、AAB 导出 preset、AudioService 最小实装——占位为元素色块，正式资产到位后替换
+- [x] 装备掉落闭环（M3，docs/08 §12）：EquipBase/AffixPool/EquipQuality 三表 + 双端 resolver + 保底/鉴定幂等 + 掉落对拍区段
+- [x] 存档与离线底层（M4，docs/15）：SaveService 信封/checksum/迁移/恢复 + UtcTimeSlicer 双端镜像 + GameStateFactory
+- [ ] 村落生产/兽潮结算器（docs/15 §2 合同已冻结；待 ItemBase/Recipe 表结构评审）
+- [x] 设置页（docs/23，M6）：五总线音量即时生效 + 总静音 + 减少动态（已接入震屏/闪烁开关）+ 粒子/字号档位持久化；`user://settings.json` 原子写
+- [ ] FTUE 实现（docs/16）与首小时 E2E
+- [ ] `config_types.gd` 与 `docs/fields.md` 生成链验收（并发实现已落工作树，仍需导表/漂移检查）
 - [x] Godot 工程骨架 D1-2（docs/13 §13）：五层目录 + Autoload 四件套 + 五总线 + `npm run sync:godot` 导表回填链
-- [x] stats.gd 移植 + 锚点测试 D3-5：ConfigService.gd + GdUnit4 锚点测试（六维/战力与 TS 黄金值逐项全等）
-- [x] battle 移植 + 对拍 D6-10：mulberry32/伤害公式/Buff/AI/捕捉全量移植；`npm run parity` + parity_runner.gd，100 种子 × 3 场景逐行全等；GdUnit4 22 项全绿，TS 15 项断言口径全部平移
-- [x] 最简演出 D11-12：`scenes/battle.tscn` 主场景（BattlePlayback 文本回放，1x/2x/跳过/重播同种子/关卡选择），配置→战斗→结果全链 headless 验证通过；GdUnit4 28 项全绿
-- [x] D13-14 自动化部分：`export_presets.cfg`（Android arm64 / `*.json` 进包 / minSdk 26）；CI 收紧（lint/test 转强制）+ `android-apk` job 出 debug 签名 APK artifact
-- [ ] **真机竖屏验证（D13 人工项）**：push 到 main → CI 下载 `fangzhi-debug-apk` artifact 装机，核对：竖屏锁定 / 上下安全区 / 演出可玩 / 1x-2x-跳过 / 关卡切换 / 重播同种子一致；通过后把 `android-apk` job 的 `continue-on-error` 去掉转强制
+- [x] stats.gd 移植 + 锚点测试 D3-5：`ConfigService.gd`、成长公式与对应 GdUnit4 测试已入库；当前运行结果以本次 CI/本地检查记录为准
+- [x] battle 基线移植 + 对拍设施 D6-10：mulberry32、伤害公式、基础 Buff/AI/捕捉及 100 种子 × 3 场景对拍脚本已入库；这是 TS 基准覆盖范围，不代表 `docs/03` 全量规则完成
+- [x] 最简演出 D11-12：`scenes/battle.tscn` 已接入 BattlePlayback 文本回放及 1x/2x/跳过/重播/关卡选择；不等同于正式视觉战斗
+- [x] D13-14 自动化配置部分：`export_presets.cfg` 已配置 Android arm64、`*.json` 进包、minSdk 26；CI 已配置 ts/lint/test/parity 强制 job 和非阻断 `android-apk` job
+- [ ] **真机竖屏验证（D13-14 人工项）**：取得成功构建的 `fangzhi-debug-apk` artifact 后装机，核对竖屏锁定、上下安全区、基础交互、关卡切换和同种子重播；通过后再移除 `android-apk.continue-on-error`
+
+统一风险、证据、Owner、验收与阻塞关系见 `docs/14-风险与完成度台账.md`。未在台账中满足验收条件的条目不得对外表述为“Phase 0 全部完成”“战斗全量完成”或“CI 全绿”。

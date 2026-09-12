@@ -14,10 +14,11 @@
 7. **战斗引擎确定性**：同种子同输入必同结果；随机统一走 seeded RNG（mulberry32）；任何 battle/ 改动必须过确定性测试，并与 TS 基准同种子对拍一致——**确定性/对拍测试失败 = 阻塞级**
 8. **随机流独立**：战斗/掉落/资质 roll 各自独立种子流；UI 演出、日志、调试查询不得消耗正式随机流
 9. **存档只存实例**：ID、等级、roll 种子；不快照配置；`user://save/` JSON + 迁移链 + 原子写（docs/07 §4）
+10. **美术表现定稿**：不使用 Spine/骨骼动画或对应插件；只用静态贴图、Tween、少量拆件、受限序列帧与粒子，并遵守同屏/帧数/图集预算（docs/10 §3/§11）
 
 ## 文档引用规则
 
-- `docs/01-13` 是**唯一需求来源**（v0.1）；写代码前先读对应文档，禁止凭记忆写规则
+- `docs/01-15` 是**设计规则与实现合同来源**（01-13 系统设计、14 台账、15 离线/存档合同）；`docs/16-24` 是**产品与流程档案**（FTUE/UX/经济/QA/合规/内容/设置/运营），各文档版本见 `docs/14 §2`；`docs/14` 只记录风险、完成度和证据，不改写设计规则
 - 设计冲突时以 `docs/01` §19 九项决策为准；发现文档间矛盾 → 标出交用户裁决，不自选
 - 引用格式：`docs/NN §章节`（例：`docs/13 §6 对拍机制`）
 
@@ -66,12 +67,12 @@ uvx --from "gdtoolkit==4.*" gdlint scripts tests
 | GDScript 单测 | GdUnit4（`tests/`，`GdUnitCmdTool.gd` 入口） | TS 断言口径逐项平移；battle/logic 层必单测 |
 | 引擎对拍 | `npm run parity` + `tests/parity_runner.gd`（种子清单 `tools/parity/seeds.json`，100 种子 × 3 场景逐行 diff） | TS 与 GDScript 同种子跑，任何不一致 = 移植 bug；check_all 第 7 步强制 |
 | 数值验收 | `npm run export` → `out/report.md` | 平衡报表 V-401 全过 |
-| View/UI | 人工试玩 | 竖屏 1080×1920、上下 80px SafeArea、异形屏清单（docs/10 §10） |
+| View/UI | 人工试玩 | 竖屏 1080×1920、上下 80px SafeArea、异形屏、动态减弱与性能预算（docs/10 §12） |
 
 ## 目录结构速查
 
 ```
-docs/            设计文档 01-13（唯一需求来源）
+docs/            设计规则 01-15 + 台账 14 + 产品流程档案 16-24
 tables/          策划数据源 CSV（.gdignore：引擎不可直接读）
 tools/export/    导表工具    tools/dep_check.ps1 check_all.ps1 检查脚本
 src/battle/      TS 确定性战斗引擎（数值验收基准，勿退役）
@@ -92,8 +93,9 @@ out/             导出产物（gitignore）
 
 ## 当前状态（随进度更新）
 
-- **Phase 0 垂直切片（TS）已完成并全绿**：导表管线 + 确定性战斗引擎 + 15 项数值验收测试
-- **Godot 接入（docs/13 §13）D1-12 全部完成**：骨架/数据层/成长公式/战斗引擎移植 + 对拍（100 种子 × 3 场景逐行全等）；D11-12 演出闭环——`scenes/battle.tscn` 主场景（BattlePlayback 文本回放，1x/2x/跳过/重播同种子/关卡选择）
-- **D13-14**：`export_presets.cfg` Android（arm64-v8a、`include_filter=*.json` 保配置进包、minSdk 26）；CI 五 job（ts/lint/test/parity 强制 + android-apk artifact 非阻断）；**待人工**：真机竖屏验证（清单见 README「下一步」），本机出包需补 Android SDK + keystore
-- **Phase 0 余项**：装备掉落 roll、村落生产 tick、存档迁移链（README「下一步」）
+- **风险整改 M0-M6 第一阶段完成（2026-09-12）**：M0 口径治理 + 台账、M1 战斗缺陷修复、M2 导表/CI 门禁、M3 装备掉落闭环、M4 存档/时间底层、M5 产品档案 docs/16-24、M6 演出第一阶段（结构化事件 + 2×3 站位 + SafeArea + AAB + Audio 最小实装 + 设置页 docs/23）；当次 `check_all` 全绿（64 项 GdUnit / 35 项 TS / 100 种子 × 4 场景对拍含事件摘要）
+- **占位声明**：战斗立绘为元素色块占位，正式美术/音频资产为外部交付门禁（docs/14）
+- **剩余阻塞**：村落生产/兽潮结算器（待表结构评审）、FTUE 实装（docs/16）、CI 实跑记录、真机竖屏验收（README「下一步」；统一台账见 docs/14）
+- **D13-14 部分完成**：Android APK + AAB preset 与五个 CI job 已配置；`android-apk` 仍为 `continue-on-error`，真机竖屏、安全区和基础交互尚待人工验收
+- **美术表现 v0.2 已定稿（2026-09-12）**：静态岩彩贴图为主，不使用 Spine/骨骼动画；Tween + 少量拆件 + 受限序列帧/粒子，见 docs/10 §3~§12
 - 开发设施已从 feitu 移植（2026-09-08）：gdUnit4 + godot_ai(4.0.2) + 子代理管线 + CI + 检查脚本
