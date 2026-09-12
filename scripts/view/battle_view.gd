@@ -17,12 +17,16 @@ const ELEMENT_COLORS: Dictionary = {
 	7: Color("#F5E7B8")
 }
 
+## 窗口宽高比（竖屏 9:16）：任意拖拽后吸附回该比例，内容等比满幅
+const WINDOW_ASPECT := 9.0 / 16.0
+
 var _seed: int = 0
 var _playback: BattlePlayback
 var _events_playback: BattleEventPlayback
 var _last_result: Dictionary = {}
 var _actor_by_uid: Dictionary = {}
 var _number_pool: Array[Label] = []
+var _snapping := false
 
 @onready var title_label: Label = $Margin/VBox/Title
 @onready var round_label: Label = $Margin/VBox/Round
@@ -36,9 +40,56 @@ var _number_pool: Array[Label] = []
 
 
 func _ready() -> void:
+	_setup_window()
 	_populate_stages()
 	if _config() != null:
 		_new_battle()
+
+
+## 桌面窗口自适应：任意拖拽后吸附回 9:16（宽:高），内容等比满幅；
+## 初始位置按可用工作区（扣任务栏）精确居中。headless 无窗口语义，跳过。
+func _setup_window() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	var win := get_window()
+	win.min_size = Vector2i(324, 576)
+	win.size_changed.connect(_snap_window_aspect)
+	_center_window()
+
+
+func _center_window() -> void:
+	await get_tree().process_frame
+	var win := get_window()
+	var usable := DisplayServer.screen_get_usable_rect(win.current_screen)
+	var pos := usable.position + (usable.size - win.size) / 2
+	win.position = Vector2i(pos)
+	_clamp_window_into_workarea(win, usable)
+
+
+## 滞回吸附：偏差 >2px 才纠正，防 resize 事件自激；尺寸与位置均钳入工作区（防底边出屏裁内容）
+func _snap_window_aspect() -> void:
+	if _snapping:
+		return
+	_snapping = true
+	var win := get_window()
+	var size := win.size
+	var usable := DisplayServer.screen_get_usable_rect(win.current_screen)
+	var target_h := int(round(float(size.x) / WINDOW_ASPECT))
+	target_h = mini(target_h, usable.size.y - 16)
+	if absi(target_h - size.y) > 2:
+		var target_w := int(round(float(target_h) * WINDOW_ASPECT))
+		win.size = Vector2i(maxi(324, target_w), maxi(576, target_h))
+	_clamp_window_into_workarea(win, usable)
+	_snapping = false
+
+
+func _clamp_window_into_workarea(win: Window, usable: Rect2i) -> void:
+	var pos := win.position
+	pos.y = mini(pos.y, usable.position.y + usable.size.y - win.size.y)
+	pos.y = maxi(pos.y, usable.position.y)
+	pos.x = mini(pos.x, usable.position.x + usable.size.x - win.size.x)
+	pos.x = maxi(pos.x, usable.position.x)
+	win.position = pos
 
 
 func _process(delta: float) -> void:
@@ -215,9 +266,9 @@ func _make_actor_slot(uid: int, side: int, unit_name: String, hp: int, element: 
 	portrait.color = ELEMENT_COLORS.get(element, Color("#6E6A66"))
 	var name_label := Label.new()
 	name_label.text = ("[敌]" if side == 1 else "") + unit_name
-	name_label.add_theme_font_size_override("font_size", 22)
+	name_label.add_theme_font_size_override("font_size", 24)
 	name_label.add_theme_color_override("font_color", Color("#E9E2D0"))
-	name_label.add_theme_constant_override("outline_size", 4)
+	name_label.add_theme_constant_override("outline_size", 2)
 	name_label.add_theme_color_override("font_outline_color", Color(0.1, 0.08, 0.06))
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var hp_bar := ProgressBar.new()
@@ -237,7 +288,7 @@ func _make_actor_slot(uid: int, side: int, unit_name: String, hp: int, element: 
 	hp_bar.add_theme_stylebox_override("fill", fill)
 	hp_bar.add_theme_stylebox_override("background", bg)
 	var skill_label := Label.new()
-	skill_label.add_theme_font_size_override("font_size", 20)
+	skill_label.add_theme_font_size_override("font_size", 22)
 	skill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	skill_label.modulate.a = 0.0
 	box.add_child(portrait)
