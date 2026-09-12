@@ -21,6 +21,7 @@ const PRIMARY_KEYS: Record<string, string[]> = {
   EnemyGroup: ['groupId', 'slot'], StageConfig: ['stageId'], DropRule: ['dropId'],
   Crop: ['cropId'], MainQuest: ['questId'],
   EquipBase: ['equipId'], AffixPool: ['affixId'], EquipQuality: ['qualityId'],
+  ItemBase: ['itemId'], StorageRule: ['categoryId'], SeasonWeather: ['seasonId'],
 };
 const CLIENT_VIS = new Set(['c', 'cs']);
 const VALID_VIS = new Set(['c', 's', 'cs']);

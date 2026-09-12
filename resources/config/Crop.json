@@ -5,6 +5,8 @@
   "seedCost": 20,
   "growMin": 30,
   "yieldN": 6,
+  "outputItemId": 101,
+  "outputCount": 6,
   "unlock": "淬体"
  },
  {
@@ -13,6 +15,8 @@
   "seedCost": 45,
   "growMin": 60,
   "yieldN": 4,
+  "outputItemId": 102,
+  "outputCount": 4,
   "unlock": "凝血"
  },
  {
@@ -21,6 +25,8 @@
   "seedCost": 45,
   "growMin": 60,
   "yieldN": 4,
+  "outputItemId": 103,
+  "outputCount": 4,
   "unlock": "凝血"
  },
  {
@@ -29,6 +35,38 @@
   "seedCost": 80,
   "growMin": 120,
   "yieldN": 3,
+  "outputItemId": 104,
+  "outputCount": 3,
   "unlock": "通脉"
+ },
+ {
+  "cropId": 5,
+  "name": "玄冰苔",
+  "seedCost": 120,
+  "growMin": 240,
+  "yieldN": 3,
+  "outputItemId": 105,
+  "outputCount": 3,
+  "unlock": "通脉"
+ },
+ {
+  "cropId": 6,
+  "name": "千年桃木",
+  "seedCost": 300,
+  "growMin": 480,
+  "yieldN": 2,
+  "outputItemId": 106,
+  "outputCount": 2,
+  "unlock": "开窍"
+ },
+ {
+  "cropId": 7,
+  "name": "变异灵草",
+  "seedCost": 0,
+  "growMin": 0,
+  "yieldN": 1,
+  "outputItemId": 108,
+  "outputCount": 1,
+  "unlock": "随机事件"
  }
 ]

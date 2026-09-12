@@ -101,7 +101,7 @@ func _run() -> int:
 					print("    TS: %s" % e)
 					break
 	if failures == 0:
-		print("PARITY OK: %d 个种子 × 4 场景 逐行一致" % seeds.size())
+		print("PARITY OK: %d 个种子 × 5 场景 逐行一致" % seeds.size())
 		return 0
 	print("PARITY: %d/%d 个种子失败" % [failures, seeds.size()])
 	return 1
@@ -228,5 +228,63 @@ func _build_lines(tables: Dictionary, cfg: Dictionary, g: Dictionary, seed: int)
 				first_micro
 			]
 		)
+	)
+
+	var crops := {}
+	crops[1] = {"cropId": 1, "growMin": 30, "yieldN": 6, "outputItemId": 101, "outputCount": 6}
+	crops[5] = {"cropId": 5, "growMin": 240, "yieldN": 3, "outputItemId": 105, "outputCount": 3}
+	var seasons := {}
+	seasons[0] = {"farmMult": 1.2}
+	seasons[1] = {"farmMult": 1.0}
+	seasons[2] = {"farmMult": 1.3}
+	seasons[3] = {"farmMult": 0.5}
+	var vconfig := {
+		"crops": crops,
+		"seasons": seasons,
+		"categoryOf": {101: 3, 105: 2},
+		"storageRules": {2: 150, 3: 100},
+		"g":
+		{
+			"SEASON_EPOCH_UTC_SEC": 0,
+			"OFFLINE_CAP_BASE_SEC": 43200,
+			"STORAGE_DECAY_PCT": 0.1,
+			"STORAGE_DECAY_PERIOD_SEC": 86400,
+		},
+	}
+	var farm_scenario := func(fields: Array, cursor: int, now: int, inv: Array) -> void:
+		var r: Dictionary = VillageProduction.settle_crops(fields, cursor, now, inv, vconfig)
+		lines.append(
+			(
+				"[farm] cursor=%d now=%d cappedBy=%d outputs=%d fields=%d"
+				% [cursor, now, int(r.cappedBy), r.outputs.size(), r.nextFields.size()]
+			)
+		)
+		for o in r.outputs:
+			lines.append(
+				(
+					"[farm_out] item=%d amount=%d season=%d"
+					% [int(o.itemId), int(o.amount), int(o.season)]
+				)
+			)
+		for s in r.inventory:
+			lines.append("[farm_inv] item=%d amount=%d" % [int(s.itemId), int(s.amount)])
+
+	(
+		farm_scenario
+		. call(
+			[
+				{"slotId": 1, "cropId": 1, "startedAtUtcSec": 430000},
+				{"slotId": 2, "cropId": 5, "startedAtUtcSec": 100},
+			],
+			430000,
+			432200,
+			[]
+		)
+	)
+	farm_scenario.call(
+		[{"slotId": 1, "cropId": 1, "startedAtUtcSec": 0}],
+		0,
+		90000,
+		[{"itemId": 101, "amount": 120}]
 	)
 	return lines

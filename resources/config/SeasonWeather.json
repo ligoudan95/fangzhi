@@ -1,0 +1,30 @@
+[
+ {
+  "seasonId": 0,
+  "name": "春",
+  "farmMult": 1.2,
+  "mineMult": 1,
+  "beastMult": 1
+ },
+ {
+  "seasonId": 1,
+  "name": "夏",
+  "farmMult": 1,
+  "mineMult": 1,
+  "beastMult": 1.3
+ },
+ {
+  "seasonId": 2,
+  "name": "秋",
+  "farmMult": 1.3,
+  "mineMult": 1,
+  "beastMult": 1
+ },
+ {
+  "seasonId": 3,
+  "name": "冬",
+  "farmMult": 0.5,
+  "mineMult": 0.7,
+  "beastMult": 1.5
+ }
+]

@@ -49,7 +49,7 @@ out/             导出产物（JSON 配置 / types.d.ts / report.md 平衡报�
 - [x] 正式视觉演出第一阶段（docs/10 §8，M6）：双端结构化战斗事件（12 类 + 对拍摘要）、`battle.tscn` 2×3 站位 + Tween 动势 + 池化伤害数字 + 震屏、动态 SafeArea、AAB 导出 preset、AudioService 最小实装——占位为元素色块，正式资产到位后替换
 - [x] 装备掉落闭环（M3，docs/08 §12）：EquipBase/AffixPool/EquipQuality 三表 + 双端 resolver + 保底/鉴定幂等 + 掉落对拍区段
 - [x] 存档与离线底层（M4，docs/15）：SaveService 信封/checksum/迁移/恢复 + UtcTimeSlicer 双端镜像 + GameStateFactory
-- [ ] 村落生产/兽潮结算器（docs/15 §2 合同已冻结；待 ItemBase/Recipe 表结构评审）
+- [x] 村落作物生产闭环（M4 尾项，docs/26 评审）：ItemBase/StorageRule/SeasonWeather 三表 + Crop 扩展（7 作物全量）；双端 settle_crops（跨季分段/离线上限/软容量溢出衰减）+ `[farm]` 对拍区段；矿场/配方/派遣属 Phase B
 - [x] 设置页（docs/23，M6）：五总线音量即时生效 + 总静音 + 减少动态（已接入震屏/闪烁开关）+ 粒子/字号档位持久化；`user://settings.json` 原子写
 - [ ] FTUE 实现（docs/16）与首小时 E2E
 - [ ] `config_types.gd` 与 `docs/fields.md` 生成链验收（并发实现已落工作树，仍需导表/漂移检查）

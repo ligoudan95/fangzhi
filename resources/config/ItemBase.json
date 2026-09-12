@@ -1,0 +1,50 @@
+[
+ {
+  "itemId": 101,
+  "name": "灵谷",
+  "kind": 1,
+  "storageCategory": 3
+ },
+ {
+  "itemId": 102,
+  "name": "赤焰花",
+  "kind": 1,
+  "storageCategory": 2
+ },
+ {
+  "itemId": 103,
+  "name": "清心草",
+  "kind": 1,
+  "storageCategory": 2
+ },
+ {
+  "itemId": 104,
+  "name": "凝神菇",
+  "kind": 1,
+  "storageCategory": 2
+ },
+ {
+  "itemId": 105,
+  "name": "玄冰苔",
+  "kind": 1,
+  "storageCategory": 2
+ },
+ {
+  "itemId": 106,
+  "name": "千年桃木",
+  "kind": 1,
+  "storageCategory": 5
+ },
+ {
+  "itemId": 107,
+  "name": "灵米饭",
+  "kind": 1,
+  "storageCategory": 3
+ },
+ {
+  "itemId": 108,
+  "name": "变异灵草",
+  "kind": 1,
+  "storageCategory": 2
+ }
+]

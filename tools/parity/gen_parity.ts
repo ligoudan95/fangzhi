@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import { Battle } from '../../src/battle/engine.ts';
 import { loadConfig, loadEquipmentConfig, makePetInput, groupInputs } from '../../src/config/load.ts';
 import { emptyPityState, resolveIdentification, resolveSettlement, type PityState } from '../../src/equipment/drop.ts';
+import { settleCrops, type FieldState, type ItemStack as FarmStack, type VillageConfig } from '../../src/logic/villageProduction.ts';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
@@ -121,7 +122,35 @@ for (const seed of seeds) {
     );
   }
 
+  // 场景5：村落作物结算（M4 尾项）——跨季/离线上限/溢出衰减（与 parity_runner.gd 同字面量）
+  {
+    const vconfig: VillageConfig = {
+      crops: new Map([
+        [1, { cropId: 1, growMin: 30, yieldN: 6, outputItemId: 101, outputCount: 6 }],
+        [5, { cropId: 5, growMin: 240, yieldN: 3, outputItemId: 105, outputCount: 3 }],
+      ]),
+      seasons: new Map([[0, { farmMult: 1.2 }], [1, { farmMult: 1.0 }], [2, { farmMult: 1.3 }], [3, { farmMult: 0.5 }]]),
+      categoryOf: new Map([[101, 3], [105, 2]]),
+      storageRules: new Map([[2, 150], [3, 100]]),
+      g: { SEASON_EPOCH_UTC_SEC: 0, OFFLINE_CAP_BASE_SEC: 43200, STORAGE_DECAY_PCT: 0.1, STORAGE_DECAY_PERIOD_SEC: 86400 },
+    };
+    const farmScenario = (fields: FieldState[], cursor: number, now: number, inv: FarmStack[]) => {
+      const r = settleCrops(fields, cursor, now, inv, vconfig);
+      lines.push(`[farm] cursor=${cursor} now=${now} cappedBy=${r.cappedBy} outputs=${r.outputs.length} fields=${r.nextFields.length}`);
+      for (const o of r.outputs) lines.push(`[farm_out] item=${o.itemId} amount=${o.amount} season=${o.season}`);
+      for (const s of r.inventory) lines.push(`[farm_inv] item=${s.itemId} amount=${s.amount}`);
+    };
+    farmScenario(
+      [{ slotId: 1, cropId: 1, startedAtUtcSec: 430000 }, { slotId: 2, cropId: 5, startedAtUtcSec: 100 }],
+      430000, 432200, [],
+    );
+    farmScenario(
+      [{ slotId: 1, cropId: 1, startedAtUtcSec: 0 }],
+      0, 90000, [{ itemId: 101, amount: 120 }],
+    );
+  }
+
   writeFileSync(join(OUT_DIR, `seed_${seed}.log`), lines.join('\n') + '\n');
 }
 
-console.log(`对拍期望日志已生成：${seeds.length} 个种子 × 4 场景 → out/parity/expected/`);
+console.log(`对拍期望日志已生成：${seeds.length} 个种子 × 5 场景 → out/parity/expected/`);

@@ -1,0 +1,22 @@
+[
+ {
+  "categoryId": 1,
+  "baseCap": 200
+ },
+ {
+  "categoryId": 2,
+  "baseCap": 150
+ },
+ {
+  "categoryId": 3,
+  "baseCap": 100
+ },
+ {
+  "categoryId": 4,
+  "baseCap": 100
+ },
+ {
+  "categoryId": 5,
+  "baseCap": 150
+ }
+]

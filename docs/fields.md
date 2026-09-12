@@ -45,7 +45,9 @@
 | name | `string` | `c` | 作物 |
 | seedCost | `int` | `c` | 种子价（兽贝） |
 | growMin | `int` | `c` | 生长分钟 |
-| yieldN | `int` | `c` | 产量 |
+| yieldN | `int` | `c` | 基础产量 |
+| outputItemId | `ref<ItemBase>` | `c` | 产物物品 |
+| outputCount | `int` | `c` | 产物数量 |
 | unlock | `string` | `c` | 解锁境界 |
 
 ## DropRule
@@ -117,6 +119,15 @@
 | value | `float` | `c` | 值 |
 | desc | `string` | `c` | 说明（变更须记changelog） |
 
+## ItemBase
+
+| 字段 | 类型 | 可见性 | 说明 |
+|---|---|---|---|
+| itemId | `int` | `c` | 主键 |
+| name | `string` | `c` | 物品名 |
+| kind | `enum<ItemKind>` | `c` | 物品类别 |
+| storageCategory | `ref<StorageRule>` | `c` | 仓储分类（容量归属） |
+
 ## MainQuest
 
 | 字段 | 类型 | 可见性 | 说明 |
@@ -163,6 +174,16 @@
 | skillId | `ref<SkillConfig>` | `c` | 技能 |
 | learnLv | `int` | `c` | 习得等级 |
 
+## SeasonWeather
+
+| 字段 | 类型 | 可见性 | 说明 |
+|---|---|---|---|
+| seasonId | `int` | `c` | 主键（0春1夏2秋3冬） |
+| name | `string` | `c` | 季节名 |
+| farmMult | `float` | `c` | 灵田产量系数 |
+| mineMult | `float` | `c` | 矿场系数 |
+| beastMult | `float` | `c` | 凶兽潮系数 |
+
 ## SkillConfig
 
 | 字段 | 类型 | 可见性 | 说明 |
@@ -191,3 +212,10 @@
 | power | `int` | `c` | 推荐战力 |
 | captureable | `bool` | `c` | 含可捕捉野怪 |
 | boss | `bool` | `c` | 是否Boss关 |
+
+## StorageRule
+
+| 字段 | 类型 | 可见性 | 说明 |
+|---|---|---|---|
+| categoryId | `int` | `c` | 主键（1矿石2草药3食物4金属锭5建材） |
+| baseCap | `int` | `c` | 基础容量（软上限） |

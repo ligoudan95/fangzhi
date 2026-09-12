@@ -18,7 +18,10 @@ const PRIMARY_KEYS: Dictionary = {
 	"MainQuest": ["questId"],
 	"EquipBase": ["equipId"],
 	"AffixPool": ["affixId"],
-	"EquipQuality": ["qualityId"]
+	"EquipQuality": ["qualityId"],
+	"ItemBase": ["itemId"],
+	"StorageRule": ["categoryId"],
+	"SeasonWeather": ["seasonId"]
 }
 const FIELD_TYPES: Dictionary = {
 	"AffixPool": {
@@ -56,6 +59,8 @@ const FIELD_TYPES: Dictionary = {
 		"seedCost": "int",
 		"growMin": "int",
 		"yieldN": "int",
+		"outputItemId": "ref<ItemBase>",
+		"outputCount": "int",
 		"unlock": "string"
 	},
 	"DropRule": {
@@ -109,6 +114,12 @@ const FIELD_TYPES: Dictionary = {
 		"value": "float",
 		"desc": "string"
 	},
+	"ItemBase": {
+		"itemId": "int",
+		"name": "string",
+		"kind": "enum<ItemKind>",
+		"storageCategory": "ref<StorageRule>"
+	},
 	"MainQuest": {
 		"questId": "int",
 		"chapterId": "int",
@@ -146,6 +157,13 @@ const FIELD_TYPES: Dictionary = {
 		"skillId": "ref<SkillConfig>",
 		"learnLv": "int"
 	},
+	"SeasonWeather": {
+		"seasonId": "int",
+		"name": "string",
+		"farmMult": "float",
+		"mineMult": "float",
+		"beastMult": "float"
+	},
 	"SkillConfig": {
 		"skillId": "int",
 		"name": "string",
@@ -168,6 +186,10 @@ const FIELD_TYPES: Dictionary = {
 		"power": "int",
 		"captureable": "bool",
 		"boss": "bool"
+	},
+	"StorageRule": {
+		"categoryId": "int",
+		"baseCap": "int"
 	}
 }
 const ARRAY_LENGTHS: Dictionary = {
@@ -182,6 +204,7 @@ const ARRAY_LENGTHS: Dictionary = {
 		"requiredGroups": 2
 	},
 	"GlobalConst": {},
+	"ItemBase": {},
 	"MainQuest": {},
 	"PetBase": {
 		"aptitudes": 10,
@@ -189,6 +212,8 @@ const ARRAY_LENGTHS: Dictionary = {
 		"breaks": 5
 	},
 	"PetSkillPool": {},
+	"SeasonWeather": {},
 	"SkillConfig": {},
-	"StageConfig": {}
+	"StageConfig": {},
+	"StorageRule": {}
 }

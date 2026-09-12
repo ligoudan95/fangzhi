@@ -1,0 +1,12 @@
+itemId,name,kind,storageCategory
+int,string,enum<ItemKind>,ref<StorageRule>
+c,c,c,c
+主键,物品名,物品类别,仓储分类（容量归属）
+101,灵谷,1,3
+102,赤焰花,1,2
+103,清心草,1,2
+104,凝神菇,1,2
+105,玄冰苔,1,2
+106,千年桃木,1,5
+107,灵米饭,1,3
+108,变异灵草,1,2
