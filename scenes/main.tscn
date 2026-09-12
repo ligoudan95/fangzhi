@@ -1,0 +1,234 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/view/main_view.gd" id="1_mainview"]
+
+[node name="MainView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_mainview")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.145, 0.122, 0.094, 1)
+
+[node name="TitlePanel" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="TitlePanel"]
+layout_mode = 2
+theme_override_constants/separation = 48
+
+[node name="GameTitle" type="Label" parent="TitlePanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 88
+text = "莽荒兽契"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="TitlePanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "洪荒捉宠 · 村落求生"
+horizontal_alignment = 1
+
+[node name="NewGameButton" type="Button" parent="TitlePanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 96)
+theme_override_font_sizes/font_size = 40
+text = "新的冒险"
+
+[node name="ContinueButton" type="Button" parent="TitlePanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 96)
+theme_override_font_sizes/font_size = 40
+text = "继续冒险"
+
+[node name="HomePanel" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 48.0
+offset_top = 48.0
+offset_right = -48.0
+offset_bottom = -48.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 32
+visible = false
+
+[node name="QuestCard" type="PanelContainer" parent="HomePanel"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="HomePanel/QuestCard"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="QuestTitle" type="Label" parent="HomePanel/QuestCard/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "任务"
+
+[node name="QuestGoal" type="Label" parent="HomePanel/QuestCard/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "目标"
+
+[node name="StoryButton" type="Button" parent="HomePanel/QuestCard/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 84)
+theme_override_font_sizes/font_size = 34
+text = "推进剧情"
+
+[node name="Actions" type="HBoxContainer" parent="HomePanel"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="BattleButton" type="Button" parent="HomePanel/Actions"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 96)
+theme_override_font_sizes/font_size = 36
+text = "出战"
+
+[node name="EquipButton" type="Button" parent="HomePanel/Actions"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 96)
+theme_override_font_sizes/font_size = 36
+text = "装备"
+
+[node name="FarmButton" type="Button" parent="HomePanel/Actions"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 96)
+theme_override_font_sizes/font_size = 36
+text = "灵田"
+
+[node name="SaveButton" type="Button" parent="HomePanel/Actions"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 96)
+theme_override_font_sizes/font_size = 36
+text = "保存"
+
+[node name="StatusRow" type="HBoxContainer" parent="HomePanel"]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="HomePanel/StatusRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "修为 0"
+
+[node name="EquipPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 96.0
+offset_top = 320.0
+offset_right = -96.0
+offset_bottom = -320.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+
+[node name="VBox" type="VBoxContainer" parent="EquipPanel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="EquipHeader" type="Label" parent="EquipPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "装备"
+horizontal_alignment = 1
+
+[node name="EquipScroll" type="ScrollContainer" parent="EquipPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EquipList" type="VBoxContainer" parent="EquipPanel/VBox/EquipScroll"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EquipClose" type="Button" parent="EquipPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 84)
+theme_override_font_sizes/font_size = 32
+text = "关闭"
+
+[node name="FarmPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 96.0
+offset_top = 360.0
+offset_right = -96.0
+offset_bottom = -360.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+
+[node name="VBox" type="VBoxContainer" parent="FarmPanel"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="FarmHeader" type="Label" parent="FarmPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "灵田"
+horizontal_alignment = 1
+
+[node name="FarmInfo" type="Label" parent="FarmPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "灵田空置"
+
+[node name="FarmPlant" type="Button" parent="FarmPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 84)
+theme_override_font_sizes/font_size = 32
+text = "播种灵谷"
+
+[node name="FarmSkip" type="Button" parent="FarmPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 84)
+theme_override_font_sizes/font_size = 32
+text = "快进 1 小时（离线预演）"
+
+[node name="FarmClose" type="Button" parent="FarmPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 84)
+theme_override_font_sizes/font_size = 32
+text = "关闭"
+
+[node name="BattleOverlay" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+
+[connection signal="pressed" from="TitlePanel/VBox/NewGameButton" to="." method="_on_new_game_pressed"]
+[connection signal="pressed" from="TitlePanel/VBox/ContinueButton" to="." method="_on_continue_pressed"]
+[connection signal="pressed" from="HomePanel/QuestCard/VBox/StoryButton" to="." method="_on_story_pressed"]
+[connection signal="pressed" from="HomePanel/Actions/BattleButton" to="." method="_on_battle_pressed"]
+[connection signal="pressed" from="HomePanel/Actions/EquipButton" to="." method="_on_equip_pressed"]
+[connection signal="pressed" from="HomePanel/Actions/FarmButton" to="." method="_on_farm_pressed"]
+[connection signal="pressed" from="HomePanel/Actions/SaveButton" to="." method="_on_save_pressed"]
+[connection signal="pressed" from="EquipPanel/VBox/EquipClose" to="." method="_on_equip_close_pressed"]
+[connection signal="pressed" from="FarmPanel/VBox/FarmPlant" to="." method="_on_farm_plant_pressed"]
+[connection signal="pressed" from="FarmPanel/VBox/FarmSkip" to="." method="_on_farm_skip_pressed"]
+[connection signal="pressed" from="FarmPanel/VBox/FarmClose" to="." method="_on_farm_close_pressed"]

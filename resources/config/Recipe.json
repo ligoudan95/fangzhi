@@ -1,0 +1,83 @@
+[
+ {
+  "recipeId": 1,
+  "station": 2,
+  "inputs": "101:3",
+  "outputItemId": 107,
+  "outputCount": 1,
+  "durationMin": 10,
+  "unlockRealm": "淬体"
+ },
+ {
+  "recipeId": 2,
+  "station": 2,
+  "inputs": "102:2",
+  "outputItemId": 201,
+  "outputCount": 0,
+  "durationMin": 20,
+  "unlockRealm": "凝血"
+ },
+ {
+  "recipeId": 3,
+  "station": 2,
+  "inputs": "201:3",
+  "outputItemId": 204,
+  "outputCount": 1,
+  "durationMin": 20,
+  "unlockRealm": "凝血"
+ },
+ {
+  "recipeId": 4,
+  "station": 1,
+  "inputs": "201:2;206:2",
+  "outputItemId": 206,
+  "outputCount": 1,
+  "durationMin": 30,
+  "unlockRealm": "凝血"
+ },
+ {
+  "recipeId": 5,
+  "station": 2,
+  "inputs": "103:2",
+  "outputItemId": 202,
+  "outputCount": 0,
+  "durationMin": 20,
+  "unlockRealm": "凝血"
+ },
+ {
+  "recipeId": 6,
+  "station": 1,
+  "inputs": "201:1;202:1",
+  "outputItemId": 205,
+  "outputCount": 1,
+  "durationMin": 40,
+  "unlockRealm": "通脉"
+ },
+ {
+  "recipeId": 7,
+  "station": 1,
+  "inputs": "204:3",
+  "outputItemId": 205,
+  "outputCount": 1,
+  "durationMin": 40,
+  "unlockRealm": "通脉"
+ },
+ {
+  "recipeId": 8,
+  "station": 2,
+  "inputs": "105:2;104:1",
+  "outputItemId": 209,
+  "outputCount": 1,
+  "durationMin": 60,
+  "unlockRealm": "通脉"
+ },
+ {
+  "recipeId": 9,
+  "station": 2,
+  "inputs": "104:2",
+  "outputItemId": 208,
+  "outputCount": 1,
+  "durationMin": 20,
+  "unlockRealm": "通脉"
+ }
+]

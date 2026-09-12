@@ -41,3 +41,11 @@ ItemKind,1,材料
 GoalType,3,获得装备
 GoalType,4,鉴定装备
 GoalType,6,上阵灵宠
+BuildingEffect,1,上限解锁
+BuildingEffect,2,数值加成
+BuildingEffect,3,队列容量
+BuildingEffect,4,恢复速率
+BuildingEffect,5,城防
+Station,1,锻造炉
+Station,2,药庐
+ItemKind,2,丹药

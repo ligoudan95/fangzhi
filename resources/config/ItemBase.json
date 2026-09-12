@@ -46,5 +46,53 @@
   "name": "变异灵草",
   "kind": 1,
   "storageCategory": 2
+ },
+ {
+  "itemId": 201,
+  "name": "铁矿",
+  "kind": 1,
+  "storageCategory": 1
+ },
+ {
+  "itemId": 202,
+  "name": "火晶",
+  "kind": 1,
+  "storageCategory": 1
+ },
+ {
+  "itemId": 203,
+  "name": "精铁矿",
+  "kind": 1,
+  "storageCategory": 1
+ },
+ {
+  "itemId": 204,
+  "name": "铁锭",
+  "kind": 1,
+  "storageCategory": 4
+ },
+ {
+  "itemId": 205,
+  "name": "精铁锭",
+  "kind": 1,
+  "storageCategory": 4
+ },
+ {
+  "itemId": 206,
+  "name": "建材",
+  "kind": 1,
+  "storageCategory": 5
+ },
+ {
+  "itemId": 208,
+  "name": "蛮力丹",
+  "kind": 1,
+  "storageCategory": 2
+ },
+ {
+  "itemId": 209,
+  "name": "淬体丹",
+  "kind": 1,
+  "storageCategory": 2
  }
 ]

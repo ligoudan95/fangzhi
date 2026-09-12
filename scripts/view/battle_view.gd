@@ -4,6 +4,9 @@
 ## View 零业务逻辑：只消费 Battle 产物；无事件时回退纯文本回放（兼容旧测试注入）。
 extends Control
 
+## 战斗回放完成（正常/跳过均恰好一次，随结果横幅首显发出）；result 为 BattleResult 字典
+signal battle_finished(result: Dictionary)
+
 ## 演示阵容：灰岩獒(坦) + 桃夭狐(疗) + 朱羽雉(输出)，与对拍场景一致
 const TEAM: Array = [[1001, 12, 900, 1], [1002, 12, 900, 1], [1005, 12, 950, 1]]
 ## 五行属性色（docs/10 §2.1）：占位贴图着色，正式立绘到位后替换
@@ -28,6 +31,7 @@ var _actor_by_uid: Dictionary = {}
 var _number_pool: Array[Label] = []
 var _snapping := false
 var _number_seq := 0
+var _uid_pet := {}
 
 @onready var title_label: Label = $Margin/VBox/Title
 @onready var round_label: Label = $Margin/VBox/Round
@@ -42,9 +46,23 @@ var _number_seq := 0
 
 func _ready() -> void:
 	_setup_window()
+	_play_bgm("res://assets/audio/bgm_battle.wav")
 	_populate_stages()
 	if _config() != null:
 		_new_battle()
+
+
+## BGM/SFX 挂钩（docs/11 §7）：Audio Autoload 缺失（headless/测试）时静默跳过
+func _play_bgm(path: String) -> void:
+	var audio := get_node_or_null("/root/Audio")
+	if audio != null:
+		audio.play_bgm(path)
+
+
+func _sfx(path: String) -> void:
+	var audio := get_node_or_null("/root/Audio")
+	if audio != null:
+		audio.play_sfx(path)
 
 
 ## 桌面窗口自适应：任意拖拽后吸附回 9:16（宽:高），内容等比满幅；
@@ -170,7 +188,19 @@ func _apply_event(e: Dictionary) -> void:
 
 func _on_start(e: Dictionary) -> void:
 	for unit in e.get("units", []):
+		_uid_pet[int(unit.u)] = _pet_id_by_name(String(unit.n))
 		_make_actor_slot(int(unit.u), int(unit.s), String(unit.n), int(unit.hp), int(unit.el))
+
+
+## 名字→petId：从 Config 的 PetBase 表查（无表时回退 0 → 色块占位）
+func _pet_id_by_name(pet_name: String) -> int:
+	var cfg_node := _config()
+	if cfg_node == null:
+		return 0
+	for row in cfg_node.get_rows("PetBase"):
+		if String(row.name) == pet_name:
+			return int(row.petId)
+	return 0
 
 
 func _on_cast(e: Dictionary) -> void:
@@ -207,6 +237,7 @@ func _on_hit(e: Dictionary) -> void:
 		_spawn_number(
 			uid, str(dmg), Color("#F0923C") if crit else Color("#E9E2D0"), 40 if crit else 30
 		)
+		_sfx("res://assets/audio/sfx_crit.wav" if crit else "res://assets/audio/sfx_hit.wav")
 		_flash(uid, Color(2.2, 2.2, 2.2))
 		_shake_battlefield(6.0 if crit else 3.0)
 	else:
@@ -216,10 +247,12 @@ func _on_hit(e: Dictionary) -> void:
 func _on_heal(e: Dictionary) -> void:
 	_update_hp(int(e.u), int(e.hp))
 	_spawn_number(int(e.u), "+%d" % int(e.a), Color("#52C462"), 30)
+	_sfx("res://assets/audio/sfx_heal.wav")
 	_flash(int(e.u), Color("#52C462"))
 
 
 func _on_death(uid: int) -> void:
+	_sfx("res://assets/audio/sfx_death.wav")
 	var slot = _actor_by_uid.get(uid)
 	if slot == null:
 		return
@@ -232,11 +265,19 @@ func _on_death(uid: int) -> void:
 
 
 func _on_sub(e: Dictionary) -> void:
+	_uid_pet[int(e.u)] = _pet_id_by_name(String(e.n))
 	_make_actor_slot(int(e.u), int(e.s), String(e.n), 1, 0)
 	_spawn_number(int(e.u), "替补入场", Color("#F5E7B8"), 24)
 
 
 func _on_capture(e: Dictionary) -> void:
+	_sfx(
+		(
+			"res://assets/audio/sfx_capture_ok.wav"
+			if int(e.ok) == 1
+			else "res://assets/audio/sfx_capture_fail.wav"
+		)
+	)
 	var ok := int(e.ok) == 1
 	var banner := Label.new()
 	banner.text = "收服！%d%%" % int(e.rt) if ok else "挣脱了…%d%%" % int(e.rt)
@@ -266,9 +307,8 @@ func _make_actor_slot(uid: int, side: int, unit_name: String, hp: int, element: 
 	panel.custom_minimum_size = Vector2(200, 240)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 6)
-	var portrait := ColorRect.new()
-	portrait.custom_minimum_size = Vector2(160, 150)
-	portrait.color = ELEMENT_COLORS.get(element, Color("#6E6A66"))
+	# docs/10 §4.2：程序化占位贴图（tools/dev/gen_placeholder_art.gd）→ 缺失回退元素色块
+	var portrait: Control = _make_portrait(uid, element)
 	var name_label := Label.new()
 	name_label.text = ("[敌]" if side == 1 else "") + unit_name
 	name_label.add_theme_font_size_override("font_size", 26)
@@ -308,6 +348,30 @@ func _make_actor_slot(uid: int, side: int, unit_name: String, hp: int, element: 
 	var row: HBoxContainer = enemy_row if side == 1 else ally_row
 	row.add_child(panel)
 	_actor_by_uid[uid] = panel
+
+
+## 立绘占位（docs/10 §4.2）：按 uid 查表加载贴图，缺失时回退元素色块
+func _make_portrait(uid: int, element: int) -> Control:
+	var pet_id := _pet_id_by_uid(uid)
+	var path := "res://art/pets/pet_%d/battle_idle.png" % pet_id
+	if ResourceLoader.exists(path):
+		var tex := TextureRect.new()
+		tex.texture = load(path)
+		tex.custom_minimum_size = Vector2(160, 190)
+		tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		return tex
+	var fallback := ColorRect.new()
+	fallback.custom_minimum_size = Vector2(160, 190)
+	fallback.color = ELEMENT_COLORS.get(element, Color("#6E6A66"))
+	return fallback
+
+
+## uid→petId：start 事件快照按序建立 _uid_pet 映射；替补也在此登记
+func _pet_id_by_uid(uid: int) -> int:
+	if _uid_pet.has(uid):
+		return int(_uid_pet[uid])
+	return 0
 
 
 func _update_hp(uid: int, hp: int) -> void:
@@ -423,6 +487,7 @@ func _show_result() -> void:
 		return
 	if result_label.text.is_empty():
 		result_label.text = "%s · %d 回合" % [_outcome_cn(), int(_last_result.get("rounds", 0))]
+		battle_finished.emit(_last_result)
 
 
 func _outcome_cn() -> String:

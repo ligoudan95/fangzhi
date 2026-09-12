@@ -20,6 +20,7 @@ var _equip_config: Dictionary = {}
 
 func _init(save_service: Node = null, tables_dir: String = "res://resources/config/") -> void:
 	_save = save_service if save_service != null else SAVE_SCRIPT.new()
+	add_child(_save)
 	_tables = BattleSetup.load_tables(tables_dir)
 	_quests = _tables.get("MainQuest", [])
 	_build_village_config()

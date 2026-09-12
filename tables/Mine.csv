@@ -1,0 +1,7 @@
+mineId,name,unlockRealm,ironRate,crystalRate,refinedRate,spiritRate,collapseRisk
+int,string,string,int,int,int,int,float
+c,c,c,c,c,c,c,c
+主键,矿层,解锁境界,铁矿/时,火晶/时,精铁矿/时,灵晶/时,塌方风险
+1,浅层铁矿,淬体,8,0,0,0,0
+2,中层火晶,凝血,4,3,0,0,0.05
+3,深层灵晶母矿,通脉,2,2,2,120,0.15

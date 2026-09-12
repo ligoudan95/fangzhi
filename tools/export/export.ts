@@ -22,6 +22,7 @@ const PRIMARY_KEYS: Record<string, string[]> = {
   Crop: ['cropId'], MainQuest: ['questId'],
   EquipBase: ['equipId'], AffixPool: ['affixId'], EquipQuality: ['qualityId'],
   ItemBase: ['itemId'], StorageRule: ['categoryId'], SeasonWeather: ['seasonId'],
+  Mine: ['mineId'], Building: ['buildingId'], Recipe: ['recipeId'],
 };
 const CLIENT_VIS = new Set(['c', 'cs']);
 const VALID_VIS = new Set(['c', 's', 'cs']);

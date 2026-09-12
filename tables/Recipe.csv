@@ -1,0 +1,13 @@
+recipeId,station,inputs,outputItemId,outputCount,durationMin,unlockRealm
+int,enum<Station>,string,ref<ItemBase>,int,int,string
+c,c,c,c,c,c,c
+主键,工作台,输入（itemId:count;分号分隔）,产物,数量,耗时分钟,解锁境界
+1,2,101:3,107,1,10,淬体
+2,2,102:2,201,0,20,凝血
+3,2,201:3,204,1,20,凝血
+4,1,201:2;206:2,206,1,30,凝血
+5,2,103:2,202,0,20,凝血
+6,1,201:1;202:1,205,1,40,通脉
+7,1,204:3,205,1,40,通脉
+8,2,105:2;104:1,209,1,60,通脉
+9,2,104:2,208,1,20,通脉

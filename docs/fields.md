@@ -37,6 +37,21 @@
 | captureLinked | `bool` | `c` | 是否捕捉联动（03文档5章） |
 | control | `int` | `c` | 控制类型0无1冰冻2眩晕3催眠4麻痹5封技 |
 
+## Building
+
+| 字段 | 类型 | 可见性 | 说明 |
+|---|---|---|---|
+| buildingId | `int` | `c` | 主键 |
+| name | `string` | `c` | 建筑 |
+| maxLevel | `int` | `c` | 最高等级 |
+| unlockRealm | `string` | `c` | 解锁境界 |
+| effectKind | `enum<BuildingEffect>` | `c` | 效果类型 |
+| effectBase | `float` | `c` | 基础值 |
+| effectStep | `float` | `c` | 每级增量 |
+| upgradeCostKey | `string` | `c` | 消耗货币 |
+| upgradeCostBase | `int` | `c` | 基础消耗 |
+| upgradeCostStep | `int` | `c` | 每级增量 |
+
 ## Crop
 
 | 字段 | 类型 | 可见性 | 说明 |
@@ -142,6 +157,19 @@
 | count | `int` | `c` | 数量 |
 | rewardXiu | `int` | `c` | 修为奖励 |
 
+## Mine
+
+| 字段 | 类型 | 可见性 | 说明 |
+|---|---|---|---|
+| mineId | `int` | `c` | 主键 |
+| name | `string` | `c` | 矿层 |
+| unlockRealm | `string` | `c` | 解锁境界 |
+| ironRate | `int` | `c` | 铁矿/时 |
+| crystalRate | `int` | `c` | 火晶/时 |
+| refinedRate | `int` | `c` | 精铁矿/时 |
+| spiritRate | `int` | `c` | 灵晶/时 |
+| collapseRisk | `float` | `c` | 塌方风险 |
+
 ## PetBase
 
 | 字段 | 类型 | 可见性 | 说明 |
@@ -173,6 +201,18 @@
 | slot | `int` | `c` | 槽位0普攻1主动2主动3绝技 |
 | skillId | `ref<SkillConfig>` | `c` | 技能 |
 | learnLv | `int` | `c` | 习得等级 |
+
+## Recipe
+
+| 字段 | 类型 | 可见性 | 说明 |
+|---|---|---|---|
+| recipeId | `int` | `c` | 主键 |
+| station | `enum<Station>` | `c` | 工作台 |
+| inputs | `string` | `c` | 输入（itemId:count;分号分隔） |
+| outputItemId | `ref<ItemBase>` | `c` | 产物 |
+| outputCount | `int` | `c` | 数量 |
+| durationMin | `int` | `c` | 耗时分钟 |
+| unlockRealm | `string` | `c` | 解锁境界 |
 
 ## SeasonWeather
 

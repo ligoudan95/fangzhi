@@ -1,0 +1,32 @@
+[
+ {
+  "mineId": 1,
+  "name": "浅层铁矿",
+  "unlockRealm": "淬体",
+  "ironRate": 8,
+  "crystalRate": 0,
+  "refinedRate": 0,
+  "spiritRate": 0,
+  "collapseRisk": 0
+ },
+ {
+  "mineId": 2,
+  "name": "中层火晶",
+  "unlockRealm": "凝血",
+  "ironRate": 4,
+  "crystalRate": 3,
+  "refinedRate": 0,
+  "spiritRate": 0,
+  "collapseRisk": 0.05
+ },
+ {
+  "mineId": 3,
+  "name": "深层灵晶母矿",
+  "unlockRealm": "通脉",
+  "ironRate": 2,
+  "crystalRate": 2,
+  "refinedRate": 2,
+  "spiritRate": 120,
+  "collapseRisk": 0.15
+ }
+]

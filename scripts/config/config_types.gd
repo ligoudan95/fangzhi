@@ -21,7 +21,10 @@ const PRIMARY_KEYS: Dictionary = {
 	"EquipQuality": ["qualityId"],
 	"ItemBase": ["itemId"],
 	"StorageRule": ["categoryId"],
-	"SeasonWeather": ["seasonId"]
+	"SeasonWeather": ["seasonId"],
+	"Mine": ["mineId"],
+	"Building": ["buildingId"],
+	"Recipe": ["recipeId"]
 }
 const FIELD_TYPES: Dictionary = {
 	"AffixPool": {
@@ -52,6 +55,18 @@ const FIELD_TYPES: Dictionary = {
 		"duration": "int",
 		"captureLinked": "bool",
 		"control": "int"
+	},
+	"Building": {
+		"buildingId": "int",
+		"name": "string",
+		"maxLevel": "int",
+		"unlockRealm": "string",
+		"effectKind": "enum<BuildingEffect>",
+		"effectBase": "float",
+		"effectStep": "float",
+		"upgradeCostKey": "string",
+		"upgradeCostBase": "int",
+		"upgradeCostStep": "int"
 	},
 	"Crop": {
 		"cropId": "int",
@@ -131,6 +146,16 @@ const FIELD_TYPES: Dictionary = {
 		"count": "int",
 		"rewardXiu": "int"
 	},
+	"Mine": {
+		"mineId": "int",
+		"name": "string",
+		"unlockRealm": "string",
+		"ironRate": "int",
+		"crystalRate": "int",
+		"refinedRate": "int",
+		"spiritRate": "int",
+		"collapseRisk": "float"
+	},
 	"PetBase": {
 		"petId": "int",
 		"name": "string",
@@ -156,6 +181,15 @@ const FIELD_TYPES: Dictionary = {
 		"slot": "int",
 		"skillId": "ref<SkillConfig>",
 		"learnLv": "int"
+	},
+	"Recipe": {
+		"recipeId": "int",
+		"station": "enum<Station>",
+		"inputs": "string",
+		"outputItemId": "ref<ItemBase>",
+		"outputCount": "int",
+		"durationMin": "int",
+		"unlockRealm": "string"
 	},
 	"SeasonWeather": {
 		"seasonId": "int",
@@ -195,6 +229,7 @@ const FIELD_TYPES: Dictionary = {
 const ARRAY_LENGTHS: Dictionary = {
 	"AffixPool": {},
 	"BuffConfig": {},
+	"Building": {},
 	"Crop": {},
 	"DropRule": {},
 	"EnemyGroup": {},
@@ -206,12 +241,14 @@ const ARRAY_LENGTHS: Dictionary = {
 	"GlobalConst": {},
 	"ItemBase": {},
 	"MainQuest": {},
+	"Mine": {},
 	"PetBase": {
 		"aptitudes": 10,
 		"natures": 4,
 		"breaks": 5
 	},
 	"PetSkillPool": {},
+	"Recipe": {},
 	"SeasonWeather": {},
 	"SkillConfig": {},
 	"StageConfig": {},
