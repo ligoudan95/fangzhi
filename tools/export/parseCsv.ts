@@ -1,5 +1,7 @@
-/** 标准 CSV 解析：支持引号包裹字段与转义引号（12文档 §1 表格规范）。 */
+/** 标准 CSV 解析：支持引号包裹字段与转义引号（12文档 §1 表格规范）。自动剥离 UTF-8 BOM。 */
 export function parseCsv(text: string): string[][] {
+  // Windows Excel/记事本保存 CSV 常带 BOM——不剥离则首列名不可见前缀导致列匹配失败
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
   const rows: string[][] = [];
   let row: string[] = [];
   let field = '';

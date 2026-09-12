@@ -48,7 +48,18 @@ static func load_settings() -> Dictionary:
 	return merged
 
 
+## 保存前钳制越界值（load 的对称校验——防写入可保存但不可读回的脏数据）
 static func save_settings(settings: Dictionary) -> bool:
+	if not PARTICLE_MODES.has(String(settings.get("particle_quality", "auto"))):
+		settings["particle_quality"] = "auto"
+	var ts := float(settings.get("text_scale", 1.0))
+	if not TEXT_SCALES.has(ts):
+		settings["text_scale"] = 1.0
+	if settings.has("volumes") and settings.volumes is Dictionary:
+		for bus_key in BUS_KEYS:
+			var v: Variant = settings.volumes.get(bus_key)
+			if v == null or float(v) < 0.0 or float(v) > 1.0:
+				settings.volumes[bus_key] = clampf(float(v) if v != null else 1.0, 0.0, 1.0)
 	var text := JSON.stringify(settings)
 	var tmp := PATH + ".tmp"
 	var f := FileAccess.open(tmp, FileAccess.WRITE)

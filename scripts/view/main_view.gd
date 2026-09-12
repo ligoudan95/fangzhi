@@ -13,6 +13,7 @@ const FTUE_TEAM: Array = [[1001, 12, 900, 1], [1002, 12, 900, 1], [1005, 12, 950
 var session: Node
 var _tables: Dictionary = {}
 var _cfg: Dictionary = {}
+var _close_timer: SceneTreeTimer
 
 @onready var title_panel: Control = $TitlePanel
 @onready var home_panel: Control = $HomePanel
@@ -165,8 +166,8 @@ func _on_battle_finished(result: Dictionary, stage: Dictionary, capture: bool) -
 		session.on_pet_captured(int(result.get("capturedPetId", 1003)))
 		session.on_party_changed(session.data.pets.size() + 1)
 	_refresh_home()
-	await get_tree().create_timer(1.2).timeout
-	battle_overlay.visible = false
+	_close_timer = get_tree().create_timer(1.2)
+	_close_timer.timeout.connect(func() -> void: battle_overlay.visible = false)
 
 
 func _find_stage(stage_id: int) -> Dictionary:

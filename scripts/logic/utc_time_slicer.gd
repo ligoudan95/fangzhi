@@ -38,12 +38,13 @@ static func next_season_boundary(utc_sec: int, epoch_sec: int) -> int:
 
 
 ## 切片 [start,end)：边界 = min(下一tick, 下一季界, end)；每片带起点季节位；end<=start 返回 []
+## 切片数安全上限 10000（防极大时间跨度 OOM，docs/15 §2.1 离线上限 12h≈144 切片）
 static func slice_range(start_utc: int, end_utc: int, epoch_sec: int) -> Array:
 	var slices: Array = []
 	if end_utc <= start_utc:
 		return slices
 	var cursor := start_utc
-	while cursor < end_utc:
+	while cursor < end_utc and slices.size() < 10000:
 		var boundary: int = mini(
 			mini(next_tick_boundary(cursor, epoch_sec), next_season_boundary(cursor, epoch_sec)),
 			end_utc

@@ -6,6 +6,7 @@ extends Node
 
 const SAVE_DIR: String = "user://save/"
 const SAVE_VERSION: int = 1
+const VALID_SLOTS: PackedStringArray = ["auto", "manual1", "manual2", "manual3"]
 const SLOT_AUTO: String = "auto"
 const SLOTS_MANUAL: PackedStringArray = ["manual1", "manual2", "manual3"]
 const ENVELOPE_KEYS: Array[String] = ["version", "generation", "checksum", "data"]
@@ -30,6 +31,10 @@ func set_base_dir(dir: String) -> void:
 
 func slot_path(slot: String, suffix: String = "") -> String:
 	return _base_dir + slot + ".json" + suffix
+
+
+func _is_valid_slot(slot: String) -> bool:
+	return VALID_SLOTS.has(slot)
 
 
 ## 原子写：tmp（flush+回读校验）→ 旧主档轮转 .bak → rename；失败不删除最后有效候选
@@ -57,8 +62,10 @@ func atomic_write(path: String, text: String) -> bool:
 	return DirAccess.rename_absolute(tmp_path, path) == OK
 
 
-## 保存：校验并发 generation → 信封+checksum → 原子写；返回 {ok, generation, reason}
+## 保存：槽位白名单 → 并发 generation → 信封+checksum → 原子写；返回 {ok, generation, reason}
 func save_slot(slot: String, data: Dictionary) -> Dictionary:
+	if not _is_valid_slot(slot):
+		return {"ok": false, "generation": -1, "reason": "非法槽位名：%s" % slot}
 	var expected := int(_generations.get(slot, -1))
 	var current := _read_generation(slot_path(slot))
 	if current != expected:
@@ -89,6 +96,15 @@ func save_slot(slot: String, data: Dictionary) -> Dictionary:
 
 ## 读取：主档 → .bak → .tmp；checksum/结构校验；v0 迁移；损坏主档留 .corrupt 证
 func load_slot(slot: String) -> Dictionary:
+	if not _is_valid_slot(slot):
+		return {
+			"ok": false,
+			"data": {},
+			"generation": -1,
+			"recoveredFrom": "",
+			"migratedFrom": -1,
+			"reason": "非法槽位名：%s" % slot
+		}
 	var fail := func(reason: String) -> Dictionary:
 		return {
 			"ok": false,
@@ -165,6 +181,8 @@ func list_slots() -> Array[Dictionary]:
 
 
 func delete_slot(slot: String) -> bool:
+	if not _is_valid_slot(slot):
+		return false
 	var ok := true
 	for suffix in ["", ".bak", ".tmp"]:
 		var path := slot_path(slot, suffix)
@@ -176,6 +194,8 @@ func delete_slot(slot: String) -> bool:
 
 ## 导出：整份信封文本（分享/备份）；不做结算
 func export_slot(slot: String, to_path: String) -> bool:
+	if not _is_valid_slot(slot):
+		return false
 	var path := slot_path(slot)
 	if not FileAccess.file_exists(path):
 		return false
@@ -189,6 +209,8 @@ func export_slot(slot: String, to_path: String) -> bool:
 
 ## 导入：结构校验后原子落位；generation 沿用文件值
 func import_slot(slot: String, from_path: String) -> Dictionary:
+	if not _is_valid_slot(slot):
+		return {"ok": false, "reason": "非法槽位名：%s" % slot}
 	var read := _read_import_envelope(from_path)
 	if String(read.error) != "":
 		return {"ok": false, "reason": read.error}
