@@ -13,6 +13,56 @@ func _init() -> void:
 	quit(code)
 
 
+## 事件摘要（docs/10 §8.1）：与 tools/parity/gen_parity.ts evDigest 同格式
+func _ev_digest(e: Dictionary) -> String:
+	match String(e.t):
+		"start":
+			var parts: Array[String] = []
+			for x in e.units:
+				parts.append(
+					"%d:%d:%s:%d:%d" % [int(x.u), int(x.s), String(x.n), int(x.hp), int(x.el)]
+				)
+			return "[ev] start units=" + ";".join(parts)
+		"cast":
+			var tg: Array = []
+			for u0 in e.tg:
+				tg.append(str(int(u0)))
+			return (
+				"[ev] cast r=%d u=%d s=%s tg=%s" % [int(e.r), int(e.u), String(e.s), "|".join(tg)]
+			)
+		"hit":
+			return "[ev] hit u=%d d=%d hp=%d c=%d" % [int(e.u), int(e.d), int(e.hp), int(e.c)]
+		"heal":
+			return "[ev] heal u=%d a=%d hp=%d" % [int(e.u), int(e.a), int(e.hp)]
+		"shield":
+			return "[ev] shield u=%d a=%d" % [int(e.u), int(e.a)]
+	return _ev_digest_more(e)
+
+
+func _ev_digest_more(e: Dictionary) -> String:
+	match String(e.t):
+		"buff":
+			return "[ev] buff u=%d b=%s st=%d" % [int(e.u), String(e.b), int(e.st)]
+		"death":
+			return "[ev] death u=%d" % int(e.u)
+		"sub":
+			return "[ev] sub u=%d n=%s s=%d" % [int(e.u), String(e.n), int(e.s)]
+		"cap":
+			return "[ev] cap u=%d tu=%d rt=%d ok=%d" % [int(e.u), int(e.tu), int(e.rt), int(e.ok)]
+		"end":
+			return "[ev] end o=%s r=%d" % [String(e.o), int(e.r)]
+	return _ev_digest_rest(e)
+
+
+func _ev_digest_rest(e: Dictionary) -> String:
+	match String(e.t):
+		"round":
+			return "[ev] round r=%d" % int(e.r)
+		"dodge":
+			return "[ev] dodge u=%d" % int(e.u)
+	return "[ev] %s" % String(e.t)
+
+
 func _run() -> int:
 	var tables := BattleSetup.load_tables(CONFIG_DIR)
 	var cfg := BattleSetup.build_cfg(tables)
@@ -51,7 +101,7 @@ func _run() -> int:
 					print("    TS: %s" % e)
 					break
 	if failures == 0:
-		print("PARITY OK: %d 个种子 × 3 场景 逐行一致" % seeds.size())
+		print("PARITY OK: %d 个种子 × 4 场景 逐行一致" % seeds.size())
 		return 0
 	print("PARITY: %d/%d 个种子失败" % [failures, seeds.size()])
 	return 1
@@ -79,6 +129,8 @@ func _build_lines(tables: Dictionary, cfg: Dictionary, g: Dictionary, seed: int)
 	lines.append("[stage4] outcome=%s rounds=%d" % [r1.outcome, r1.rounds])
 	for l in r1.log:
 		lines.append(String(l))
+	for l0 in r1.events:
+		lines.append(_ev_digest(l0))
 
 	var b2 := (
 		Battle
@@ -97,6 +149,8 @@ func _build_lines(tables: Dictionary, cfg: Dictionary, g: Dictionary, seed: int)
 	lines.append("[stage6] outcome=%s rounds=%d" % [r2.outcome, r2.rounds])
 	for l in r2.log:
 		lines.append(String(l))
+	for l0 in r2.events:
+		lines.append(_ev_digest(l0))
 
 	var b3 := (
 		Battle
@@ -119,4 +173,60 @@ func _build_lines(tables: Dictionary, cfg: Dictionary, g: Dictionary, seed: int)
 	lines.append("[capture] outcome=%s rounds=%d" % [r3.outcome, r3.rounds])
 	for l in r3.log:
 		lines.append(String(l))
+	for l0 in r3.events:
+		lines.append(_ev_digest(l0))
+
+	var ec := BattleSetup.build_equip_config(tables)
+	var drop := func(
+		seq: int, drop_id: int, count: int, level: int, luck: float, pity: Dictionary
+	) -> Dictionary:
+		return (
+			EquipDropResolver
+			. resolve_settlement(
+				{
+					"rootSeed": seed,
+					"settlementSeq": seq,
+					"dropId": drop_id,
+					"dropCount": count,
+					"monsterLevel": level,
+					"luckValue": luck,
+					"pityState": pity,
+				},
+				ec,
+				g
+			)
+		)
+
+	for l in drop.call(1001, 1, 2, 12, 0.0, EquipDropResolver.empty_pity_state()).canonicalLog:
+		lines.append(String(l))
+
+	var pity14 := {"schemaVersion": 1, "counters": {"2": 14}}
+	var loot_b: Dictionary = drop.call(1002, 2, 3, 20, 100.0, pity14)
+	for l in loot_b.canonicalLog:
+		lines.append(String(l))
+	for l in drop.call(1003, 2, 3, 20, 100.0, loot_b.pityAfter).canonicalLog:
+		lines.append(String(l))
+
+	var c: Dictionary = drop.call(1004, 3, 1, 30, 250.0, EquipDropResolver.empty_pity_state())
+	for l in c.canonicalLog:
+		lines.append(String(l))
+	var view: Dictionary = EquipDropResolver.resolve_identification(c.items[0], ec, g)
+	var affixes: Array = view.affixes
+	var first_id := -1
+	var first_micro := -1
+	if not affixes.is_empty():
+		first_id = int(affixes[0].affixId)
+		first_micro = int(affixes[0].valueMicro)
+	lines.append(
+		(
+			"[loot_ident] instanceId=%s mainValueMicro=%d affixCount=%d firstAffix=%d firstMicro=%d"
+			% [
+				String(c.items[0].instanceId),
+				int(view.mainValueMicro),
+				affixes.size(),
+				first_id,
+				first_micro
+			]
+		)
+	)
 	return lines

@@ -15,10 +15,12 @@ var units: Array = []
 var bench: Array = [[], []]
 var round_num: int = 0
 var log_lines: Array = []
+var events: Array = []
 var outcome: String = ""
 var captured_pet_id: int = -1
 var capture_mode: bool = false
 var capture_target_uid: int = -1
+var _pending_capture_actor_uid: int = -1
 var _uid_seq: int = 1
 
 
@@ -116,7 +118,9 @@ func _make_unit(p: Dictionary, side: int) -> Dictionary:
 	var pet: Dictionary = cfg.pets[int(p.petId)]
 	var skills: Array = []
 	for id in p.skillIds:
-		skills.append(cfg.skills[int(id)])
+		var skill: Dictionary = cfg.skills.get(int(id), {})
+		if not skill.is_empty() and int(skill.learnLv) <= int(p.level):
+			skills.append(skill)
 	var stats: Dictionary = (
 		BattleStats
 		. compute_stats(
@@ -157,6 +161,7 @@ func _make_unit(p: Dictionary, side: int) -> Dictionary:
 		"strategy": String(p.get("strategy", "random")),
 		"ctrlHistory": [],
 		"tauntTarget": -1,
+		"tauntRemain": 0,
 		"capBonus": 0.0,
 	}
 
@@ -223,8 +228,21 @@ func _alive_count(side: int) -> int:
 
 
 func run() -> Dictionary:
+	var start_units: Array = []
+	for u in units:
+		start_units.append(
+			{
+				"u": int(u.uid),
+				"s": int(u.side),
+				"n": String(u.name),
+				"hp": int(u.stats.hp),
+				"el": int(u.element)
+			}
+		)
+	_ev({"t": "start", "units": start_units})
 	round_num = 1
 	while round_num <= int(g.ROUND_CAP):
+		_ev({"t": "round", "r": round_num})
 		var order: Array = []
 		for u in units:
 			if bool(u.alive):
@@ -235,6 +253,8 @@ func run() -> Dictionary:
 			if not bool(u.alive) or outcome != "":
 				break
 			_take_turn(u)
+			if int(u.side) == 1 and _pending_capture_actor_uid > 0 and outcome == "":
+				_settle_pending_capture()
 		_round_end()
 		if outcome != "":
 			break
@@ -246,12 +266,19 @@ func run() -> Dictionary:
 	if outcome == "":
 		outcome = "timeout"
 	log_lines.append("== 战斗结束：" + _outcome_text())
+	_ev({"t": "end", "o": outcome, "r": round_num})
 	return {
 		"outcome": outcome,
 		"rounds": round_num,
 		"log": log_lines,
+		"events": events,
 		"capturedPetId": captured_pet_id,
 	}
+
+
+## 结构化事件（docs/10 §8.1）：只记录已发生事实，不消耗 RNG；与日志同点发射
+func _ev(e: Dictionary) -> void:
+	events.append(e)
 
 
 func _order_cmp(a: Dictionary, b: Dictionary) -> bool:
@@ -288,6 +315,10 @@ func _take_turn(u: Dictionary) -> void:
 	if _control_of(u, 4) and rng.next() < 0.5:
 		log_lines.append("R%d %s 麻痹无法行动" % [round_num, _n(u)])
 		return
+	if int(u.side) == 0 and _should_prepare_capture():
+		_pending_capture_actor_uid = int(u.uid)
+		log_lines.append("R%d %s 准备收妖" % [round_num, _n(u)])
+		return
 	var act := _choose_action(u)
 	if act.is_empty():
 		return
@@ -295,10 +326,38 @@ func _take_turn(u: Dictionary) -> void:
 	var targets: Array = act.targets
 	u.cds[u.skills.find(skill)] = skill.cd
 	log_lines.append("R%d %s 施放【%s】" % [round_num, _n(u), String(skill.name)])
+	var target_uids: Array = []
+	for t0 in targets:
+		target_uids.append(int(t0.uid))
+	_ev({"t": "cast", "r": round_num, "u": int(u.uid), "s": String(skill.name), "tg": target_uids})
 	for e in skill.effects:
 		_apply_effect(u, skill, e, targets)
 	if float(skill.rageGain) > 0:
 		u.rage = minf(float(g.RAGE_MAX), float(u.rage) + float(skill.rageGain))
+
+
+## Phase 0 自动捕捉策略：目标进入 20% 以下血线后，首个可行动我方单位准备收妖。
+func _should_prepare_capture() -> bool:
+	if not capture_mode or _pending_capture_actor_uid > 0:
+		return false
+	for x in units:
+		if int(x.uid) == capture_target_uid and bool(x.alive):
+			return float(x.hp) / float(x.stats.hp) < 0.2
+	return false
+
+
+func _settle_pending_capture() -> void:
+	var actor_uid := _pending_capture_actor_uid
+	_pending_capture_actor_uid = -1
+	var target: Dictionary = {}
+	for x in units:
+		if int(x.uid) == capture_target_uid and bool(x.alive):
+			target = x
+			break
+	if target.is_empty():
+		return
+	var quality_key := "CAP_Q%d" % int(cfg.pets[int(target.petId)].quality)
+	try_capture(actor_uid, float(g.CAP_GOURD_JADE), float(g[quality_key]))
 
 
 # ---------- AI 决策（03 §7） ----------
@@ -487,25 +546,31 @@ func _apply_effect(u: Dictionary, skill: Dictionary, e: Dictionary, targets: Arr
 		var t: Dictionary = u if bool(e.onSelf) else t0
 		var et := String(e.type)
 		if et == "PhysDamage" or et == "MagDamage":
+			var hit_target: Dictionary = t
 			for _h in range(int(e.hitCount)):
+				if not bool(hit_target.alive):
+					var remaining := _enemies_of(u)
+					if remaining.is_empty():
+						break
+					hit_target = _min_hp_ratio(remaining)
 				var roll := {
 					"hit": rng.next() < float(g.HIT_BASE),
 					"crit": rng.next() < float(g.CRIT_BASE),
 					"float":
 					float(g.FLOAT_MIN) + rng.next() * (float(g.FLOAT_MAX) - float(g.FLOAT_MIN)),
 				}
-				var te := eff(t)
-				var mark := _find_mark_buff(t, int(skill.element))
+				var te := eff(hit_target)
+				var mark := _find_mark_buff(hit_target, int(skill.element))
 				var dmg := calc_damage(
 					{
 						"atkStat": ue.atk if et == "PhysDamage" else ue.mag,
 						"power": e.power,
 						"isPhys": et == "PhysDamage",
 						"attackerElement": u.element,
-						"defenderElement": t.element,
+						"defenderElement": hit_target.element,
 						"skillElement": skill.element,
 						"defStat": te.def if et == "PhysDamage" else te.res,
-						"defenderLevel": t.level,
+						"defenderLevel": hit_target.level,
 						"dmgMod": ue.dmg,
 						"markPct":
 						(
@@ -518,19 +583,22 @@ func _apply_effect(u: Dictionary, skill: Dictionary, e: Dictionary, targets: Arr
 					g
 				)
 				if not bool(roll.hit):
-					log_lines.append("  → %s 闪避" % _n(t))
+					log_lines.append("  → %s 闪避" % _n(hit_target))
+					_ev({"t": "dodge", "u": int(hit_target.uid)})
 					continue
-				_deal_damage(u, t, dmg, int(skill.element))
+				_deal_damage(u, hit_target, dmg, int(skill.element), bool(roll.crit))
 			_remove_first_dmg_buff(u)
 		elif et == "Heal":
 			var amount: int = roundi(float(ue.mag) * float(e.power))
 			t.hp = mini(int(t.stats.hp), int(t.hp) + amount)
 			log_lines.append("  → %s 回复 %d 点气血" % [_n(t), amount])
+			_ev({"t": "heal", "u": int(t.uid), "a": amount, "hp": int(t.hp)})
 		elif et == "Shield":
 			var base := maxf(float(ue.mag), float(ue.def))
 			var add: int = roundi(base * float(e.power))
 			t.shield = int(t.shield) + add
 			log_lines.append("  → %s 获得护盾 %d" % [_n(t), add])
+			_ev({"t": "shield", "u": int(t.uid), "a": add})
 		elif et == "ApplyBuff":
 			var def: Dictionary = cfg.buffs.get(int(e.buffId))
 			if def == null or def.is_empty():
@@ -559,11 +627,17 @@ func _apply_effect(u: Dictionary, skill: Dictionary, e: Dictionary, targets: Arr
 			if int(def.kind) == 2:
 				t.ctrlHistory.append(round_num)
 			log_lines.append("  → %s 获得【%s】" % [_n(t), String(def.name)])
+			var buff_stacks := 1
+			if not ex.is_empty():
+				buff_stacks = int(ex.stacks)
+			_ev({"t": "buff", "u": int(t.uid), "b": String(def.name), "st": buff_stacks})
 		elif et == "Taunt":
-			var self_unit: Dictionary = u if bool(e.onSelf) else t
-			var target_unit: Dictionary = t if bool(e.onSelf) else u
-			self_unit.tauntTarget = int(target_unit.uid)
-			log_lines.append("  → %s 被嘲讽" % _n(self_unit))
+			var duration := maxi(1, int(e.duration) if int(e.duration) > 0 else int(e.power))
+			var affected: Array = _enemies_of(u) if bool(e.onSelf) else [t]
+			for enemy in affected:
+				enemy.tauntTarget = int(u.uid)
+				enemy.tauntRemain = maxi(int(enemy.tauntRemain), duration)
+			log_lines.append("  → %s 发起嘲讽" % _n(u))
 		elif et == "RageModify":
 			t.rage = maxf(0.0, minf(float(g.RAGE_MAX), float(t.rage) + float(e.power)))
 			var sign := "+" if float(e.power) > 0 else ""
@@ -601,7 +675,9 @@ func _remove_first_dmg_buff(u: Dictionary) -> void:
 			return
 
 
-func _deal_damage(_attacker: Dictionary, t: Dictionary, dmg: int, skill_element: int) -> void:
+func _deal_damage(
+	_attacker: Dictionary, t: Dictionary, dmg: int, skill_element: int, crit: bool = false
+) -> void:
 	if int(t.shield) > 0:
 		var absorbed := mini(int(t.shield), dmg)
 		t.shield = int(t.shield) - absorbed
@@ -619,10 +695,14 @@ func _deal_damage(_attacker: Dictionary, t: Dictionary, dmg: int, skill_element:
 				var burn: Dictionary = cfg.buffs[2]
 				t.buffs.append({"def": burn, "stacks": 1, "remain": int(burn.duration)})
 		log_lines.append("  → %s 受到 %d 点伤害（剩 %d）" % [_n(t), dmg, maxi(0, int(t.hp))])
+		_ev(
+			{"t": "hit", "u": int(t.uid), "d": dmg, "hp": maxi(0, int(t.hp)), "c": 1 if crit else 0}
+		)
 		if int(t.hp) <= 0:
 			_kill(t)
 	else:
 		log_lines.append("  → %s 的护盾吸收了全部伤害" % _n(t))
+		_ev({"t": "hit", "u": int(t.uid), "d": 0, "hp": maxi(0, int(t.hp)), "c": 0})
 
 
 func _find_control_buff(t: Dictionary, control_type: int) -> Dictionary:
@@ -636,12 +716,14 @@ func _kill(t: Dictionary) -> void:
 	t.alive = false
 	t.hp = 0
 	log_lines.append("  ✕ %s 倒下" % _n(t))
+	_ev({"t": "death", "u": int(t.uid)})
 	var side_bench: Array = bench[int(t.side)]
 	if not side_bench.is_empty():
 		var sub: Dictionary = side_bench.pop_front()
 		sub.rage = 50.0
 		units.append(sub)
 		log_lines.append("  ▲ 替补 %s 入场（怒气50）" % String(sub.name))
+		_ev({"t": "sub", "u": int(sub.uid), "n": String(sub.name), "s": int(sub.side)})
 	else:
 		units.erase(t)
 
@@ -676,7 +758,10 @@ func _round_end() -> void:
 			new_cds.append(maxi(0, int(c) - 1))
 		u.cds = new_cds
 		u.capBonus = 0.0
-		u.tauntTarget = -1
+		if int(u.tauntRemain) > 0:
+			u.tauntRemain = int(u.tauntRemain) - 1
+		if int(u.tauntRemain) <= 0:
+			u.tauntTarget = -1
 
 
 ## 玩家捕捉指令（03 §10）：消耗行动回合，在敌方行动后结算
@@ -716,6 +801,15 @@ func try_capture(actor_uid: int, gourd_base: float, quality_coef: float) -> bool
 			"R%d %s 祭出祖灵葫芦（成功率 %d%%）→ %s"
 			% [round_num, _n(actor), floori(rate * 100.0 + 0.5), "收服！" if ok else "挣脱了"]
 		)
+	)
+	_ev(
+		{
+			"t": "cap",
+			"u": int(actor.uid),
+			"tu": int(t.uid),
+			"rt": floori(rate * 100.0 + 0.5),
+			"ok": 1 if ok else 0
+		}
 	)
 	if ok:
 		captured_pet_id = int(t.petId)

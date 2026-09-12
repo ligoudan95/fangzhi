@@ -2,9 +2,10 @@
 import { readFileSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { BattleConfig } from '../battle/engine.ts';
+import type { BattleConfig, SkillPoolEntry } from '../battle/engine.ts';
 import type { PetInput, PetRow, SkillRow, BuffRow } from '../battle/types.ts';
 import type { G } from '../battle/stats.ts';
+import type { AffixRow, EquipBaseRow, EquipDropConfig, EquipQualityRow, DropRuleRow } from '../equipment/drop.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -19,10 +20,10 @@ export function loadConfig(): BattleConfig {
   for (const s of readJson<SkillRow[]>('SkillConfig')) skills.set(s.skillId, s);
   const buffs = new Map<number, BuffRow>();
   for (const b of readJson<BuffRow[]>('BuffConfig')) buffs.set(b.buffId, b);
-  const pool = new Map<number, number[]>();
-  for (const r of readJson<{ petId: number; slot: number; skillId: number }[]>('PetSkillPool')) {
+  const pool = new Map<number, SkillPoolEntry[]>();
+  for (const r of readJson<{ petId: number; slot: number; skillId: number; learnLv: number }[]>('PetSkillPool')) {
     const arr = pool.get(r.petId) ?? [];
-    arr[r.slot] = r.skillId;
+    arr[r.slot] = { skillId: r.skillId, learnLv: r.learnLv };
     pool.set(r.petId, arr);
   }
   return { g, pets, skills, buffs, skillPool: pool };
@@ -31,7 +32,10 @@ export function loadConfig(): BattleConfig {
 /** 从种族表构造战斗单位输入（资质统一值；资质roll功能后续版本接入） */
 export function makePetInput(cfg: BattleConfig, petId: number, level: number, apt: number, realmBreaks: number, opts?: { captureable?: boolean; strategy?: string }): PetInput {
   const apts = { atk: apt, def: apt, hp: apt, spd: apt, mag: apt };
-  return { petId, level, apts, realmBreaks, skillIds: cfg.skillPool.get(petId) ?? [], captureable: opts?.captureable, strategy: opts?.strategy };
+  const skillIds = (cfg.skillPool.get(petId) ?? [])
+    .filter(entry => entry && entry.learnLv <= level)
+    .map(entry => entry.skillId);
+  return { petId, level, apts, realmBreaks, skillIds, captureable: opts?.captureable, strategy: opts?.strategy };
 }
 
 /** 读取敌人组（EnemyGroup 表） */
@@ -40,4 +44,23 @@ export function groupInputs(cfg: BattleConfig, groupId: number): PetInput[] {
     .filter(r => r.groupId === groupId)
     .sort((a, b) => a.slot - b.slot);
   return rows.map(r => makePetInput(cfg, r.petId, r.level, r.apt, 0, { captureable: true, strategy: r.strategy }));
+}
+
+/** 装备掉落配置（docs/08 M3）：DropRule + EquipBase/AffixPool/EquipQuality */
+export function loadEquipmentConfig(): EquipDropConfig {
+  const rules = new Map<number, DropRuleRow>();
+  for (const r of readJson<Array<Record<string, unknown>>>('DropRule')) {
+    rules.set(Number(r.dropId), {
+      dropId: Number(r.dropId), source: Number(r.source),
+      weights: ['wWhite', 'wGreen', 'wBlue', 'wPurple', 'wOrange', 'wRed'].map(k => Number(r[k])),
+      luckApply: Boolean(r.luckApply), pityQuality: Number(r.pityQuality), pityCount: Number(r.pityCount),
+      pityUnit: String(r.pityUnit), equipLvMode: String(r.equipLvMode),
+      equipLvOffsetMin: Number(r.equipLvOffsetMin), equipLvOffsetMax: Number(r.equipLvOffsetMax),
+    });
+  }
+  const equipBase = readJson<EquipBaseRow[]>('EquipBase');
+  const affixes = readJson<AffixRow[]>('AffixPool');
+  const qualities = new Map<number, EquipQualityRow>();
+  for (const q of readJson<EquipQualityRow[]>('EquipQuality')) qualities.set(q.qualityId, q);
+  return { rules, equipBase, affixes, qualities };
 }

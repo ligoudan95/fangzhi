@@ -13,7 +13,12 @@ export interface BattleConfig {
   pets: Map<number, PetRow>;
   skills: Map<number, SkillRow>;
   buffs: Map<number, BuffRow>;
-  skillPool: Map<number, number[]>; // petId → [普攻, 主动1, 主动2, 绝技]
+  skillPool: Map<number, SkillPoolEntry[]>; // petId → 按槽位排列的技能及习得等级
+}
+
+export interface SkillPoolEntry {
+  skillId: number;
+  learnLv: number;
 }
 
 /** mulberry32 种子随机 */
@@ -76,10 +81,12 @@ export class Battle {
   bench: Unit[][] = [[], []];
   round = 0;
   log: string[] = [];
+  events: Record<string, unknown>[] = [];
   outcome?: BattleOutcome;
   capturedPetId?: number;
   captureMode = false;
   captureTargetUid = -1;
+  private pendingCaptureActorUid = -1;
   private uidSeq = 1;
 
   constructor(cfg: BattleConfig, sideA: PetInput[], sideB: PetInput[], seed: number, opts?: { capture?: boolean }) {
@@ -97,7 +104,9 @@ export class Battle {
 
   private makeUnit(p: PetInput, side: 0 | 1): Unit {
     const pet = this.cfg.pets.get(p.petId)!;
-    const skills = p.skillIds.map(id => this.cfg.skills.get(id)!);
+    const skills = p.skillIds
+      .map(id => this.cfg.skills.get(id))
+      .filter((skill): skill is SkillRow => !!skill && skill.learnLv <= p.level);
     const stats = computeStats(pet.template,
       { hp: pet.offHp, atk: pet.offAtk, def: pet.offDef, spd: pet.offSpd, mag: pet.offMag, res: pet.offRes },
       p.level, p.apts, p.realmBreaks, this.g);
@@ -106,7 +115,7 @@ export class Battle {
       stats, hp: stats.hp, shield: 0, rage: 0,
       skills, cds: skills.map(() => 0),
       buffs: [], alive: true, captureable: !!p.captureable,
-      strategy: p.strategy ?? 'random', ctrlHistory: [], tauntTarget: -1, capBonus: 0,
+      strategy: p.strategy ?? 'random', ctrlHistory: [], tauntTarget: -1, tauntRemain: 0, capBonus: 0,
     };
   }
 
@@ -127,13 +136,22 @@ export class Battle {
   private alliesOf(u: Unit): Unit[] { return this.units.filter(x => x.side === u.side && x.alive); }
 
   run(): BattleResult {
+    this.ev({
+      t: 'start', units: this.units.map(u => ({
+        u: u.uid, s: u.side, n: u.name, hp: u.stats.hp, el: u.element,
+      })),
+    });
     for (this.round = 1; this.round <= this.g.ROUND_CAP; this.round++) {
+      this.ev({ t: 'round', r: this.round });
       const order = this.units.filter(u => u.alive)
         .map(u => ({ u, r: this.rng() }))
         .sort((a, b) => this.eff(b.u).spd - this.eff(a.u).spd || a.r - b.r);
       for (const { u } of order) {
         if (!u.alive || this.outcome) break;
         this.takeTurn(u);
+        if (u.side === 1 && this.pendingCaptureActorUid > 0 && !this.outcome) {
+          this.settlePendingCapture();
+        }
       }
       this.roundEnd();
       if (this.outcome) break;
@@ -142,7 +160,13 @@ export class Battle {
     }
     if (!this.outcome) this.outcome = 'timeout'; // 03§1：回合上限判进攻方负（守方优势）
     this.log.push(`== 战斗结束：${this.outcomeText()}`);
-    return { outcome: this.outcome, rounds: this.round, log: this.log, capturedPetId: this.capturedPetId };
+    this.ev({ t: 'end', o: this.outcome, r: this.round });
+    return { outcome: this.outcome, rounds: this.round, log: this.log, events: this.events, capturedPetId: this.capturedPetId };
+  }
+
+  /** 结构化事件（docs/10 §8.1）：只记录已发生事实，不消耗 RNG；与日志同点发射 */
+  private ev(e: Record<string, unknown>): void {
+    this.events.push(e);
   }
 
   private outcomeText(): string {
@@ -164,8 +188,13 @@ export class Battle {
       this.log.push(`R${this.round} ${this.n(u)} 被控制无法行动`);
       return;
     }
-    if (this.controlOf(u, 4) && this.rng() < 0.5) { // 麻痹50%跳过
+    if (this.controlOf(u, 4) && this.rng() < 0.5) { // 麻痹50%
       this.log.push(`R${this.round} ${this.n(u)} 麻痹无法行动`);
+      return;
+    }
+    if (u.side === 0 && this.shouldPrepareCapture()) {
+      this.pendingCaptureActorUid = u.uid;
+      this.log.push(`R${this.round} ${this.n(u)} 准备收妖`);
       return;
     }
     const act = this.chooseAction(u);
@@ -173,9 +202,26 @@ export class Battle {
     const [skill, targets] = act;
     u.cds[u.skills.indexOf(skill)] = skill.cd;
     this.log.push(`R${this.round} ${this.n(u)} 施放【${skill.name}】`);
+    this.ev({ t: 'cast', r: this.round, u: u.uid, s: skill.name, tg: targets.map(t0 => t0.uid) });
     for (const e of skill.effects) this.applyEffect(u, skill, e, targets);
     // 怒气：普攻命中+30（rageGain），受击在 applyDamage 中结算
     if (skill.rageGain > 0) u.rage = Math.min(this.g.RAGE_MAX, u.rage + skill.rageGain);
+  }
+
+  /** 捕捉模式在最优血线内由首个可行动单位消耗行动准备收妖。 */
+  private shouldPrepareCapture(): boolean {
+    if (!this.captureMode || this.pendingCaptureActorUid > 0) return false;
+    const target = this.units.find(x => x.uid === this.captureTargetUid && x.alive);
+    return !!target && target.hp / target.stats.hp < 0.2;
+  }
+
+  private settlePendingCapture(): void {
+    const actorUid = this.pendingCaptureActorUid;
+    this.pendingCaptureActorUid = -1;
+    const target = this.units.find(u => u.uid === this.captureTargetUid && u.alive);
+    if (!target) return;
+    const qualityCoef = Number(this.g[`CAP_Q${this.cfg.pets.get(target.petId)!.quality}` as keyof G]);
+    this.tryCapture(actorUid, this.g.CAP_GOURD_JADE, qualityCoef);
   }
 
   /** AI 决策（03文档 §7） */
@@ -279,18 +325,24 @@ export class Battle {
       switch (e.type) {
         case 'PhysDamage':
         case 'MagDamage': {
+          let hitTarget = t;
           for (let h = 0; h < e.hitCount; h++) {
+            if (!hitTarget.alive) {
+              const remaining = this.enemiesOf(u);
+              if (!remaining.length) break;
+              hitTarget = remaining.reduce((a, b) => a.hp / a.stats.hp <= b.hp / b.stats.hp ? a : b);
+            }
             const roll = { hit: this.rng() < this.g.HIT_BASE, crit: this.rng() < this.g.CRIT_BASE, float: this.g.FLOAT_MIN + this.rng() * (this.g.FLOAT_MAX - this.g.FLOAT_MIN) };
-            const te = this.eff(t);
-            const mark = t.buffs.find(b => b.def.kind === 4 && b.def.markElement === skill.element);
+            const te = this.eff(hitTarget);
+            const mark = hitTarget.buffs.find(b => b.def.kind === 4 && b.def.markElement === skill.element);
             const dmg = calcDamage({
               atkStat: e.type === 'PhysDamage' ? ue.atk : ue.mag, power: e.power, isPhys: e.type === 'PhysDamage',
-              attackerElement: u.element, defenderElement: t.element, skillElement: skill.element,
-              defStat: e.type === 'PhysDamage' ? te.def : te.res, defenderLevel: t.level,
+              attackerElement: u.element, defenderElement: hitTarget.element, skillElement: skill.element,
+              defStat: e.type === 'PhysDamage' ? te.def : te.res, defenderLevel: hitTarget.level,
               dmgMod: ue.dmg, markPct: mark ? mark.def.markPct * mark.stacks : 0,
             }, roll, this.g);
-            if (!roll.hit) { this.log.push(`  → ${this.n(t)} 闪避`); continue; }
-            this.dealDamage(u, t, dmg, skill.element);
+            if (!roll.hit) { this.log.push(`  → ${this.n(hitTarget)} 闪避`); this.ev({ t: 'dodge', u: hitTarget.uid }); continue; }
+            this.dealDamage(u, hitTarget, dmg, skill.element, roll.crit);
           }
           // 蓄势消耗
           const mo = u.buffs.find(b => b.def.modStat === 'dmg');
@@ -301,12 +353,14 @@ export class Battle {
           const amount = Math.round(ue.mag * e.power);
           t.hp = Math.min(t.stats.hp, t.hp + amount);
           this.log.push(`  → ${this.n(t)} 回复 ${amount} 点气血`);
+          this.ev({ t: 'heal', u: t.uid, a: amount, hp: t.hp });
           break;
         }
         case 'Shield': {
           const base = Math.max(ue.mag, ue.def);
           t.shield += Math.round(base * e.power);
           this.log.push(`  → ${this.n(t)} 获得护盾 ${Math.round(base * e.power)}`);
+          this.ev({ t: 'shield', u: t.uid, a: Math.round(base * e.power) });
           break;
         }
         case 'ApplyBuff': {
@@ -325,13 +379,17 @@ export class Battle {
           else t.buffs.push({ def, stacks: 1, remain: def.duration });
           if (def.kind === 2) t.ctrlHistory.push(this.round);
           this.log.push(`  → ${this.n(t)} 获得【${def.name}】`);
+          this.ev({ t: 'buff', u: t.uid, b: def.name, st: ex ? ex.stacks : 1 });
           break;
         }
         case 'Taunt': {
-          const self = e.onSelf ? u : t;
-          const target = e.onSelf ? t : u; // 施加者自身嘲讽目标
-          self.tauntTarget = target.uid; // v0：嘲讽至回合结束
-          this.log.push(`  → ${this.n(self)} 被嘲讽`);
+          const duration = Math.max(1, e.duration || e.power);
+          const affected = e.onSelf ? this.enemiesOf(u) : [t];
+          for (const enemy of affected) {
+            enemy.tauntTarget = u.uid;
+            enemy.tauntRemain = Math.max(enemy.tauntRemain, duration);
+          }
+          this.log.push(`  → ${this.n(u)} 发起嘲讽`);
           break;
         }
         case 'RageModify': {
@@ -360,7 +418,7 @@ export class Battle {
     }
   }
 
-  private dealDamage(attacker: Unit, t: Unit, dmg: number, skillElement: number) {
+  private dealDamage(attacker: Unit, t: Unit, dmg: number, skillElement: number, crit = false) {
     if (t.shield > 0) {
       const abs = Math.min(t.shield, dmg);
       t.shield -= abs; dmg -= abs;
@@ -381,18 +439,23 @@ export class Battle {
         }
       }
       this.log.push(`  → ${this.n(t)} 受到 ${dmg} 点伤害（剩 ${Math.max(0, t.hp)}）`);
+      this.ev({ t: 'hit', u: t.uid, d: dmg, hp: Math.max(0, t.hp), c: crit ? 1 : 0 });
       if (t.hp <= 0) this.kill(t);
     } else {
       this.log.push(`  → ${this.n(t)} 的护盾吸收了全部伤害`);
+      this.ev({ t: 'hit', u: t.uid, d: 0, hp: Math.max(0, t.hp), c: 0 });
     }
   }
 
   private kill(t: Unit) {
     t.alive = false; t.hp = 0;
     this.log.push(`  ✕ ${this.n(t)} 倒下`);
+    this.ev({ t: 'death', u: t.uid });
     const sub = this.bench[t.side].shift();
-    if (sub) { sub.rage = 50; this.units.push(sub); this.log.push(`  ▲ 替补 ${sub.name} 入场（怒气50）`); }
-    else this.units = this.units.filter(x => x !== t);
+    if (sub) {
+      sub.rage = 50; this.units.push(sub); this.log.push(`  ▲ 替补 ${sub.name} 入场（怒气50）`);
+      this.ev({ t: 'sub', u: sub.uid, n: sub.name, s: sub.side });
+    } else this.units = this.units.filter(x => x !== t);
   }
 
   private roundEnd() {
@@ -413,7 +476,8 @@ export class Battle {
       u.buffs = u.buffs.filter(b => b.remain > 0);
       u.cds = u.cds.map(c => Math.max(0, c - 1));
       u.capBonus = 0;
-      u.tauntTarget = -1;
+      if (u.tauntRemain > 0) u.tauntRemain--;
+      if (u.tauntRemain <= 0) u.tauntTarget = -1;
     }
   }
 
@@ -430,6 +494,7 @@ export class Battle {
     }, this.g);
     const ok = this.rng() < rate;
     this.log.push(`R${this.round} ${this.n(actor)} 祭出祖灵葫芦（成功率 ${(rate * 100).toFixed(0)}%）→ ${ok ? '收服！' : '挣脱了'}`);
+    this.ev({ t: 'cap', u: actor.uid, tu: t.uid, rt: Math.round(rate * 100), ok: ok ? 1 : 0 });
     if (ok) { this.capturedPetId = t.petId; this.outcome = 'captured'; }
     return ok;
   }

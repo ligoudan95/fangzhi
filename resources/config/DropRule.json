@@ -11,7 +11,11 @@
   "luckApply": false,
   "pityQuality": 0,
   "pityCount": 0,
-  "equipLvRule": "怪等±2"
+  "equipLvRule": "怪等±2",
+  "pityUnit": "settlement",
+  "equipLvMode": "monster_level",
+  "equipLvOffsetMin": -2,
+  "equipLvOffsetMax": 2
  },
  {
   "dropId": 2,
@@ -25,7 +29,11 @@
   "luckApply": true,
   "pityQuality": 3,
   "pityCount": 15,
-  "equipLvRule": "怪等±2"
+  "equipLvRule": "怪等±2",
+  "pityUnit": "settlement",
+  "equipLvMode": "monster_level",
+  "equipLvOffsetMin": -2,
+  "equipLvOffsetMax": 2
  },
  {
   "dropId": 3,
@@ -39,7 +47,11 @@
   "luckApply": true,
   "pityQuality": 4,
   "pityCount": 20,
-  "equipLvRule": "怪等±2"
+  "equipLvRule": "怪等±2",
+  "pityUnit": "settlement",
+  "equipLvMode": "monster_level",
+  "equipLvOffsetMin": -2,
+  "equipLvOffsetMax": 2
  },
  {
   "dropId": 4,
@@ -53,7 +65,11 @@
   "luckApply": true,
   "pityQuality": 4,
   "pityCount": 10,
-  "equipLvRule": "怪等±2"
+  "equipLvRule": "怪等±2",
+  "pityUnit": "settlement",
+  "equipLvMode": "monster_level",
+  "equipLvOffsetMin": -2,
+  "equipLvOffsetMax": 2
  },
  {
   "dropId": 5,
@@ -67,6 +83,10 @@
   "luckApply": true,
   "pityQuality": 4,
   "pityCount": 15,
-  "equipLvRule": "怪等±2"
+  "equipLvRule": "怪等±2",
+  "pityUnit": "settlement",
+  "equipLvMode": "monster_level",
+  "equipLvOffsetMin": -2,
+  "equipLvOffsetMax": 2
  }
 ]

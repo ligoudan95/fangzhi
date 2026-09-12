@@ -46,6 +46,7 @@ export interface Unit {
   alive: boolean; captureable: boolean; strategy: string;
   ctrlHistory: number[];       // 最近回合被控标记（控制递减窗口）
   tauntTarget: number | -1;    // 嘲讽指向的uid，-1无
+  tauntRemain: number;         // 嘲讽剩余回合
   capBonus: number;            // 本回合捕捉率加成（地听等）
 }
 
@@ -55,5 +56,7 @@ export interface BattleResult {
   outcome: BattleOutcome;
   rounds: number;
   log: string[];
+  /** 结构化事件（docs/10 §8.1）：View 演出数据源；与日志同点发射、不消耗 RNG */
+  events: Array<Record<string, unknown>>;
   capturedPetId?: number;
 }

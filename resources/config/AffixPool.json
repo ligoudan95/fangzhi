@@ -1,0 +1,145 @@
+[
+ {
+  "affixId": 1,
+  "group": 1,
+  "stat": "atk",
+  "rollType": 1,
+  "min": 0.04,
+  "max": 0.1,
+  "weight": 1,
+  "qualityMin": 0,
+  "qualityMax": 5
+ },
+ {
+  "affixId": 2,
+  "group": 1,
+  "stat": "mag",
+  "rollType": 1,
+  "min": 0.04,
+  "max": 0.1,
+  "weight": 1,
+  "qualityMin": 0,
+  "qualityMax": 5
+ },
+ {
+  "affixId": 3,
+  "group": 1,
+  "stat": "critRate",
+  "rollType": 1,
+  "min": 0.02,
+  "max": 0.06,
+  "weight": 1,
+  "qualityMin": 0,
+  "qualityMax": 5
+ },
+ {
+  "affixId": 4,
+  "group": 1,
+  "stat": "critDmg",
+  "rollType": 1,
+  "min": 0.08,
+  "max": 0.2,
+  "weight": 1,
+  "qualityMin": 0,
+  "qualityMax": 5
+ },
+ {
+  "affixId": 5,
+  "group": 1,
+  "stat": "spd",
+  "rollType": 1,
+  "min": 0.03,
+  "max": 0.08,
+  "weight": 1,
+  "qualityMin": 0,
+  "qualityMax": 5
+ },
+ {
+  "affixId": 6,
+  "group": 1,
+  "stat": "dmgElem1",
+  "rollType": 1,
+  "min": 0.06,
+  "max": 0.15,
+  "weight": 0.5,
+  "qualityMin": 0,
+  "qualityMax": 5
+ },
+ {
+  "affixId": 7,
+  "group": 1,
+  "stat": "dmgElem2",
+  "rollType": 1,
+  "min": 0.06,
+  "max": 0.15,
+  "weight": 0.5,
+  "qualityMin": 0,
+  "qualityMax": 5
+ },
+ {
+  "affixId": 8,
+  "group": 1,
+  "stat": "dmgElem3",
+  "rollType": 1,
+  "min": 0.06,
+  "max": 0.15,
+  "weight": 0.5,
+  "qualityMin": 0,
+  "qualityMax": 5
+ },
+ {
+  "affixId": 9,
+  "group": 1,
+  "stat": "dmgElem4",
+  "rollType": 1,
+  "min": 0.06,
+  "max": 0.15,
+  "weight": 0.5,
+  "qualityMin": 0,
+  "qualityMax": 5
+ },
+ {
+  "affixId": 10,
+  "group": 1,
+  "stat": "dmgElem5",
+  "rollType": 1,
+  "min": 0.06,
+  "max": 0.15,
+  "weight": 0.5,
+  "qualityMin": 0,
+  "qualityMax": 5
+ },
+ {
+  "affixId": 11,
+  "group": 2,
+  "stat": "hp",
+  "rollType": 1,
+  "min": 0.05,
+  "max": 0.12,
+  "weight": 1,
+  "qualityMin": 0,
+  "qualityMax": 5
+ },
+ {
+  "affixId": 12,
+  "group": 2,
+  "stat": "def",
+  "rollType": 1,
+  "min": 0.05,
+  "max": 0.12,
+  "weight": 1,
+  "qualityMin": 0,
+  "qualityMax": 5
+ },
+ {
+  "affixId": 13,
+  "group": 2,
+  "stat": "res",
+  "rollType": 1,
+  "min": 0.05,
+  "max": 0.12,
+  "weight": 1,
+  "qualityMin": 0,
+  "qualityMax": 5
+ }
+]

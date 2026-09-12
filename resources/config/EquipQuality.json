@@ -1,0 +1,68 @@
+[
+ {
+  "qualityId": 0,
+  "affixMin": 0,
+  "affixMax": 0,
+  "rareForLuck": false,
+  "unidentified": false,
+  "requiredGroups": [
+   0,
+   0
+  ]
+ },
+ {
+  "qualityId": 1,
+  "affixMin": 1,
+  "affixMax": 2,
+  "rareForLuck": false,
+  "unidentified": false,
+  "requiredGroups": [
+   0,
+   0
+  ]
+ },
+ {
+  "qualityId": 2,
+  "affixMin": 2,
+  "affixMax": 3,
+  "rareForLuck": false,
+  "unidentified": true,
+  "requiredGroups": [
+   0,
+   0
+  ]
+ },
+ {
+  "qualityId": 3,
+  "affixMin": 3,
+  "affixMax": 4,
+  "rareForLuck": true,
+  "unidentified": true,
+  "requiredGroups": [
+   0,
+   0
+  ]
+ },
+ {
+  "qualityId": 4,
+  "affixMin": 4,
+  "affixMax": 5,
+  "rareForLuck": true,
+  "unidentified": true,
+  "requiredGroups": [
+   0,
+   0
+  ]
+ },
+ {
+  "qualityId": 5,
+  "affixMin": 6,
+  "affixMax": 6,
+  "rareForLuck": true,
+  "unidentified": true,
+  "requiredGroups": [
+   0,
+   0
+  ]
+ }
+]

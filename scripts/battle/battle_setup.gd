@@ -44,8 +44,8 @@ static func build_cfg(tables: Dictionary) -> Dictionary:
 		var arr: Array = pool.get(key, [])
 		var slot := int(r.slot)
 		while arr.size() <= slot:
-			arr.append(0)
-		arr[slot] = int(r.skillId)
+			arr.append({})
+		arr[slot] = {"skillId": int(r.skillId), "learnLv": int(r.learnLv)}
 		pool[key] = arr
 	return {
 		"g": tables.get("GlobalConst", {}),
@@ -61,7 +61,10 @@ static func make_pet_input(
 	cfg: Dictionary, pet_id: int, level: int, apt: int, realm_breaks: int, opts: Dictionary = {}
 ) -> Dictionary:
 	var apts := {"atk": apt, "def": apt, "hp": apt, "spd": apt, "mag": apt}
-	var skill_ids: Array = cfg.skillPool.get(pet_id, [])
+	var skill_ids: Array = []
+	for entry in cfg.skillPool.get(pet_id, []):
+		if not entry.is_empty() and int(entry.learnLv) <= level:
+			skill_ids.append(int(entry.skillId))
 	var input := {
 		"petId": pet_id,
 		"level": level,
@@ -100,3 +103,45 @@ static func group_inputs(tables: Dictionary, cfg: Dictionary, group_id: int) -> 
 
 static func _slot_cmp(a: Dictionary, b: Dictionary) -> bool:
 	return int(a.slot) < int(b.slot)
+
+
+## 装备掉落配置（08 M3）：装备四表 → {rules, equipBase, affixes, qualities}
+static func build_equip_config(tables: Dictionary) -> Dictionary:
+	var rules := {}
+	for r in tables.get("DropRule", []):
+		rules[int(r.dropId)] = {
+			"dropId": int(r.dropId),
+			"source": int(r.source),
+			"weights":
+			[
+				float(r.wWhite),
+				float(r.wGreen),
+				float(r.wBlue),
+				float(r.wPurple),
+				float(r.wOrange),
+				float(r.wRed),
+			],
+			"luckApply": bool(r.luckApply),
+			"pityQuality": int(r.pityQuality),
+			"pityCount": int(r.pityCount),
+			"pityUnit": String(r.pityUnit),
+			"equipLvMode": String(r.equipLvMode),
+			"equipLvOffsetMin": int(r.equipLvOffsetMin),
+			"equipLvOffsetMax": int(r.equipLvOffsetMax),
+		}
+	var qualities := {}
+	for q in tables.get("EquipQuality", []):
+		qualities[int(q.qualityId)] = {
+			"qualityId": int(q.qualityId),
+			"affixMin": int(q.affixMin),
+			"affixMax": int(q.affixMax),
+			"rareForLuck": bool(q.rareForLuck),
+			"unidentified": bool(q.unidentified),
+			"requiredGroups": q.requiredGroups,
+		}
+	return {
+		"rules": rules,
+		"equipBase": tables.get("EquipBase", []),
+		"affixes": tables.get("AffixPool", []),
+		"qualities": qualities,
+	}

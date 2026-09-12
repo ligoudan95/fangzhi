@@ -1,0 +1,44 @@
+[
+ {
+  "equipId": 101,
+  "slot": 1,
+  "mainStat": "atk",
+  "baseValue": 32,
+  "weight": 1
+ },
+ {
+  "equipId": 102,
+  "slot": 1,
+  "mainStat": "mag",
+  "baseValue": 32,
+  "weight": 1
+ },
+ {
+  "equipId": 201,
+  "slot": 2,
+  "mainStat": "def",
+  "baseValue": 28,
+  "weight": 1
+ },
+ {
+  "equipId": 202,
+  "slot": 2,
+  "mainStat": "res",
+  "baseValue": 28,
+  "weight": 1
+ },
+ {
+  "equipId": 301,
+  "slot": 3,
+  "mainStat": "spd",
+  "baseValue": 12,
+  "weight": 1
+ },
+ {
+  "equipId": 302,
+  "slot": 3,
+  "mainStat": "hp",
+  "baseValue": 90,
+  "weight": 1
+ }
+]

@@ -1,0 +1,10 @@
+equipId,slot,mainStat,baseValue,weight
+int,int,string,float,float
+c,c,c,c,c
+主键,装备部位（1武器2防具3饰品）,主属性键,部位主属性基准（08 §4：基准×(1+等级×EQUIP_MAIN_LV_SCALE)）,模板抽取权重
+101,1,atk,32,1
+102,1,mag,32,1
+201,2,def,28,1
+202,2,res,28,1
+301,3,spd,12,1
+302,3,hp,90,1

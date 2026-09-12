@@ -1,0 +1,10 @@
+qualityId,affixMin,affixMax,rareForLuck,unidentified,requiredGroups
+int,int,int,bool,bool,array<int>(2)
+c,c,c,c,c,c
+主键（0白1绿2蓝3紫4橙5红）,词条数下限,词条数上限,是否受幸运加成,掉落时未鉴定,必选词条组（0=无；组配额待设计确认 Phase 0 不强制）
+0,0,0,false,false,0;0
+1,1,2,false,false,0;0
+2,2,3,false,true,0;0
+3,3,4,true,true,0;0
+4,4,5,true,true,0;0
+5,6,6,true,true,0;0
