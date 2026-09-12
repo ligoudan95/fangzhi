@@ -95,7 +95,7 @@ out/             导出产物（gitignore）
 
 - **风险整改 M0-M6 第一阶段完成（2026-09-12）**：M0 口径治理 + 台账、M1 战斗缺陷修复、M2 导表/CI 门禁、M3 装备掉落闭环、M4 存档/时间底层、M5 产品档案 docs/16-24、M6 演出第一阶段（结构化事件 + 2×3 站位 + SafeArea + AAB + Audio 最小实装 + 设置页 docs/23）；当次 `check_all` 全绿（64 项 GdUnit / 35 项 TS / 100 种子 × 4 场景对拍含事件摘要）
 - **占位声明**：战斗立绘为元素色块占位，正式美术/音频资产为外部交付门禁（docs/14）
-- **剩余阻塞**：FTUE 实装（docs/16）、Phase B 表评审（Building/Recipe/Mine）、兽潮结算、真机竖屏验收（README「下一步」；统一台账见 docs/14）。CI 五 job 已全绿（run 34686413389）+ 作物生产闭环（72 项 GdUnit / 43 项 TS / 100 种子 × 5 场景对拍）
+- **剩余阻塞**：FTUE 视图接线与首小时 E2E（数据+推进器已落）、Phase B 表评审（Building/Recipe/Mine）、兽潮结算、真机竖屏验收（README「下一步」；统一台账见 docs/14）。CI 五 job 已全绿（run 34686413389）+ 作物生产闭环（72 项 GdUnit / 43 项 TS / 100 种子 × 5 场景对拍）
 - **D13-14 部分完成**：Android APK + AAB preset 与五个 CI job 已配置；`android-apk` 仍为 `continue-on-error`，真机竖屏、安全区和基础交互尚待人工验收
 - **美术表现 v0.2 已定稿（2026-09-12）**：静态岩彩贴图为主，不使用 Spine/骨骼动画；Tween + 少量拆件 + 受限序列帧/粒子，见 docs/10 §3~§12
 - 开发设施已从 feitu 移植（2026-09-08）：gdUnit4 + godot_ai(4.0.2) + 子代理管线 + CI + 检查脚本

@@ -58,17 +58,6 @@
   "questId": 6,
   "chapterId": 1,
   "order": 3,
-  "nodeType": 2,
-  "title": "木系图鉴·初",
-  "goalType": 2,
-  "targetId": 2,
-  "count": 3,
-  "rewardXiu": 400
- },
- {
-  "questId": 7,
-  "chapterId": 1,
-  "order": 4,
   "nodeType": 3,
   "title": "播种时节",
   "goalType": 5,
@@ -77,9 +66,53 @@
   "rewardXiu": 300
  },
  {
+  "questId": 7,
+  "chapterId": 1,
+  "order": 4,
+  "nodeType": 2,
+  "title": "首件战利品",
+  "goalType": 3,
+  "targetId": 0,
+  "count": 1,
+  "rewardXiu": 400
+ },
+ {
   "questId": 8,
   "chapterId": 1,
   "order": 5,
+  "nodeType": 3,
+  "title": "鉴定开光",
+  "goalType": 4,
+  "targetId": 0,
+  "count": 1,
+  "rewardXiu": 300
+ },
+ {
+  "questId": 9,
+  "chapterId": 1,
+  "order": 6,
+  "nodeType": 2,
+  "title": "木系图鉴·初",
+  "goalType": 2,
+  "targetId": 2,
+  "count": 3,
+  "rewardXiu": 400
+ },
+ {
+  "questId": 10,
+  "chapterId": 1,
+  "order": 7,
+  "nodeType": 2,
+  "title": "三兽成阵",
+  "goalType": 6,
+  "targetId": 0,
+  "count": 3,
+  "rewardXiu": 500
+ },
+ {
+  "questId": 11,
+  "chapterId": 1,
+  "order": 8,
   "nodeType": 2,
   "title": "雾深处",
   "goalType": 1,
@@ -88,9 +121,9 @@
   "rewardXiu": 500
  },
  {
-  "questId": 9,
+  "questId": 12,
   "chapterId": 1,
-  "order": 6,
+  "order": 9,
   "nodeType": 2,
   "title": "老藤营地",
   "goalType": 1,
@@ -99,9 +132,9 @@
   "rewardXiu": 600
  },
  {
-  "questId": 10,
+  "questId": 13,
   "chapterId": 1,
-  "order": 7,
+  "order": 10,
   "nodeType": 2,
   "title": "域主·藤皇",
   "goalType": 1,
