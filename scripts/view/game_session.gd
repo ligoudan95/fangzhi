@@ -502,7 +502,12 @@ func build_battle_team() -> Array:
 					int(pet.level),
 					900,
 					int(pet.realmBreaks),
-					{"apts": apts, "natureMods": mods, "statMods": emods.flat}
+					{
+						"apts": apts,
+						"natureMods": mods,
+						"statMods": emods.flat,
+						"setBonuses": emods.specialMods
+					}
 				)
 			)
 			break

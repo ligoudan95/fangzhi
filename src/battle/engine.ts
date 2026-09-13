@@ -118,7 +118,7 @@ export class Battle {
     return {
       uid: this.uidSeq++, side, petId: p.petId, name: pet.name, element: pet.element, level: p.level,
       stats, hp: stats.hp, shield: 0, rage: 0,
-      skills, cds: skills.map(() => 0),
+      skills, cds: skills.map(() => 0), setBonuses: p.setBonuses,
       buffs: [], alive: true, captureable: !!p.captureable,
       strategy: p.strategy ?? 'random', ctrlHistory: [], tauntTarget: -1, tauntRemain: 0, capBonus: 0,
     };
@@ -352,6 +352,10 @@ export class Battle {
             }, roll, this.g);
             if (!roll.hit) { this.log.push(`  → ${this.n(hitTarget)} 闪避`); this.ev({ t: 'dodge', u: hitTarget.uid }); continue; }
             this.dealDamage(u, hitTarget, dmg, skill.element, roll.crit);
+            // 雷煞 3 件：暴击额外怒气（docs/08 §7）
+            if (roll.crit && u.setBonuses?.rage_crit !== undefined) {
+              u.rage = Math.min(this.g.RAGE_MAX, u.rage + u.setBonuses.rage_crit);
+            }
           }
           // 蓄势消耗
           const mo = u.buffs.find(b => b.def.modStat === 'dmg');
@@ -359,8 +363,16 @@ export class Battle {
           break;
         }
         case 'Heal': {
-          const amount = Math.round(ue.mag * e.power);
+          let amount = Math.round(ue.mag * e.power);
+          // 青木套装（docs/08 §7）：治疗加成 + 受治疗灵力护盾
+          const hsb = u.setBonuses ?? {};
+          if (hsb.heal !== undefined) amount = Math.round(amount * (1 + hsb.heal));
           t.hp = Math.min(t.stats.hp, t.hp + amount);
+          if (hsb.shield_heal !== undefined) {
+            const hsShield = Math.round(amount * hsb.shield_heal);
+            t.shield += hsShield;
+            this.log.push(`  → ${this.n(t)} 获得灵力护盾 ${hsShield}`);
+          }
           this.log.push(`  → ${this.n(t)} 回复 ${amount} 点气血`);
           this.ev({ t: 'heal', u: t.uid, a: amount, hp: t.hp });
           break;
@@ -381,6 +393,10 @@ export class Battle {
             const n = u === t ? 0 : t.ctrlHistory.filter(r => this.round - r <= this.g.CTRL_DIM_WINDOW).length;
             chance *= Math.pow(this.g.CTRL_DIM, Math.min(n, 3));
             chance *= 1 - (t.buffs.reduce((a, b) => a + b.def.ctrlRes, 0));
+          }
+          // 玄冰 2 件：冰冻概率加成（仅控制型=冰冻；不加抽 rng，改动机会值本身）
+          if (u.setBonuses?.freeze_chance !== undefined && def.control === 1) {
+            chance += u.setBonuses.freeze_chance;
           }
           if (this.rng() >= chance) { this.log.push(`  → ${this.n(t)} 抵抗了【${def.name}】`); break; }
           const ex = t.buffs.find(b => b.def.buffId === def.buffId);
@@ -428,13 +444,38 @@ export class Battle {
   }
 
   private dealDamage(attacker: Unit, t: Unit, dmg: number, skillElement: number, crit = false) {
+    // 套装特殊机制（docs/08 §7 EquipSet bonus；EquipStats.specialMods 注入，缺省零影响）
+    const setb = attacker.setBonuses ?? {};
+    if (setb.dmg_first !== undefined && this.eff(attacker).spd > this.eff(t).spd) {
+      dmg = Math.round(dmg * (1 + setb.dmg_first));
+    }
+    if (setb.dmg_fire !== undefined && attacker.element === 4) {
+      dmg = Math.round(dmg * (1 + setb.dmg_fire));
+    }
+    if (setb.dmg_frozen !== undefined && t.buffs.some(b => b.def.control === 1)) {
+      dmg = Math.round(dmg * (1 + setb.dmg_frozen));
+    }
     if (t.shield > 0) {
       const abs = Math.min(t.shield, dmg);
       t.shield -= abs; dmg -= abs;
     }
     if (dmg > 0) {
+      // 引爆溅射（赤炎 3 件）：对灼烧目标的伤害溅射余敌最低血量者（不链式）
+      if (setb.detonate_splash !== undefined && t.buffs.some(b => b.def.buffId === 2)) {
+        const splashD = Math.round(dmg * setb.detonate_splash);
+        const others = this.enemiesOf(attacker).filter(e0 => e0.uid !== t.uid);
+        if (others.length) {
+          const sp = others.reduce((a, b) => a.hp / a.stats.hp <= b.hp / b.stats.hp ? a : b);
+          const a2: Unit = { ...attacker, setBonuses: { ...(setb as Record<string, number>) } };
+          delete (a2.setBonuses as Record<string, number>).detonate_splash;
+          this.dealDamage(a2, sp, splashD, skillElement, false);
+          this.log.push(`  → 溅射 ${this.n(sp)} 受到 ${splashD} 点伤害`);
+        }
+      }
       t.hp -= dmg;
-      t.rage = Math.min(this.g.RAGE_MAX, t.rage + this.g.RAGE_HIT);
+      let hitGain = this.g.RAGE_HIT;
+      if (t.setBonuses?.rage_double !== undefined) hitGain *= t.setBonuses.rage_double;
+      t.rage = Math.min(this.g.RAGE_MAX, t.rage + hitGain);
       // 催眠受击解除（03§12）
       const sleep = t.buffs.find(b => b.def.control === 3);
       if (sleep) t.buffs.splice(t.buffs.indexOf(sleep), 1);
@@ -483,7 +524,9 @@ export class Battle {
         b.remain--;
       }
       u.buffs = u.buffs.filter(b => b.remain > 0);
-      u.cds = u.cds.map(c => Math.max(0, c - 1));
+      // 雷煞 2 件：冷却削减（docs/08 §7）
+      const cdCut = 1 + (u.setBonuses?.cd_reduce ?? 0);
+      u.cds = u.cds.map(c => Math.max(0, c - cdCut));
       u.capBonus = 0;
       if (u.tauntRemain > 0) u.tauntRemain--;
       if (u.tauntRemain <= 0) u.tauntTarget = -1;

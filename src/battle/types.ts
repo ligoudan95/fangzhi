@@ -36,6 +36,7 @@ export interface PetInput {
   isEnemy?: boolean;
   natureMods?: Record<string, number>;  // 性格修正（并入种族偏移，docs/04 §3）
   statMods?: Record<string, number>;    // 装备平面加成（docs/08 §4/§5，compute 后叠加）
+  setBonuses?: Record<string, number>;  // 套装特殊机制（docs/08 §7）
 }
 
 export interface BuffInst { def: BuffRow; stacks: number; remain: number }
@@ -44,6 +45,7 @@ export interface Unit {
   uid: number; side: 0 | 1; petId: number; name: string; element: number; level: number;
   stats: Stats; hp: number; shield: number; rage: number;
   skills: SkillRow[]; cds: number[];
+  setBonuses?: Record<string, number>;  // 套装特殊机制（docs/08 §7， EquipStats.specialMods）
   buffs: BuffInst[];
   alive: boolean; captureable: boolean; strategy: string;
   ctrlHistory: number[];       // 最近回合被控标记（控制递减窗口）

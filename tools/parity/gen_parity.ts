@@ -231,7 +231,21 @@ for (const seed of seeds) {
     for (const w of t.waves) lines.push(`[beast_wave] utc=${w.waveUtcSec} outcome=${w.outcome} rounds=${w.rounds}`);
   }
 
+  // 场景10：套装特殊机制（docs/08 §7）——setBonuses 通道全键覆盖的确定性战斗
+  {
+    const team = [
+      { ...makePetInput(cfg, 1001, 12, 900, 1), setBonuses: { dmg_first: 0.4, cd_reduce: 1, rage_crit: 20, rage_double: 2 } },
+      { ...makePetInput(cfg, 1002, 12, 900, 1), setBonuses: { heal: 0.2, shield_heal: 0.15 } },
+      { ...makePetInput(cfg, 1006, 12, 900, 1), setBonuses: { dmg_fire: 0.15, detonate_splash: 0.5, dmg_frozen: 0.5, freeze_chance: 0.15 } },
+    ];
+    const b = new Battle(cfg, team, groupInputs(cfg, 4), seed);
+    const r = b.run();
+    lines.push(`[setbonus] outcome=${r.outcome} rounds=${r.rounds}`);
+    lines.push(...r.log);
+    lines.push(...r.events.map(evDigest));
+  }
+
   writeFileSync(join(OUT_DIR, `seed_${seed}.log`), lines.join('\n') + '\n');
 }
 
-console.log(`对拍期望日志已生成：${seeds.length} 个种子 × 9 场景 → out/parity/expected/`);
+console.log(`对拍期望日志已生成：${seeds.length} 个种子 × 10 场景 → out/parity/expected/`);

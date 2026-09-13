@@ -35,6 +35,7 @@ export interface EquipMods {
   ratio: Record<string, number>;
   activeSets: { id: number; name: string; tier: number }[];
   special: string[];
+  specialMods: Record<string, number>;  // 套装特殊机制键值（引擎 setBonuses 通道）
 }
 
 const BASIC_STATS = ['hp', 'atk', 'def', 'spd', 'mag', 'res'];
@@ -48,6 +49,7 @@ export function equippedMods(
   const ratio: Record<string, number> = {};
   const activeSets: EquipMods['activeSets'] = [];
   const special: string[] = [];
+  const specialMods: Record<string, number> = {};
   const wornSetIds: number[] = [];
   const equips = pet.equips ?? {};
   for (const instanceId of Object.values(equips)) {
@@ -84,10 +86,11 @@ export function equippedMods(
       if ((BASIC_STATS as string[]).includes(stat)) {
         ratio[stat] = (ratio[stat] ?? 0) + pct;
       } else {
-        // 特殊机制键（dmg_first/cd_reduce 等）战斗消费待引擎扩展，先登记
+        // 特殊机制键（dmg_first/cd_reduce 等）→ 引擎 setBonuses 通道；同名叠加取和
+        specialMods[stat] = (specialMods[stat] ?? 0) + pct;
         special.push(`${row.name}(${tierI}件)：${desc}`);
       }
     }
   }
-  return { flat, ratio, activeSets, special };
+  return { flat, ratio, activeSets, special, specialMods };
 }

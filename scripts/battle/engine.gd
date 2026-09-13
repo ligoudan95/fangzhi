@@ -151,6 +151,7 @@ func _make_unit(p: Dictionary, side: int) -> Dictionary:
 		"rage": 0.0,
 		"skills": skills,
 		"cds": cds,
+		"setBonuses": p.get("setBonuses", {}),
 		"buffs": [],
 		"alive": true,
 		"captureable": bool(p.get("captureable", false)),
@@ -592,10 +593,21 @@ func _apply_effect(u: Dictionary, skill: Dictionary, e: Dictionary, targets: Arr
 					_ev({"t": "dodge", "u": int(hit_target.uid)})
 					continue
 				_deal_damage(u, hit_target, dmg, int(skill.element), bool(roll.crit))
+				# 雷煞 3 件：暴击额外怒气（docs/08 §7）
+				if bool(roll.crit) and u.get("setBonuses", {}).has("rage_crit"):
+					u.rage = minf(float(g.RAGE_MAX), float(u.rage) + float(u.setBonuses.rage_crit))
 			_remove_first_dmg_buff(u)
 		elif et == "Heal":
 			var amount: int = roundi(float(ue.mag) * float(e.power))
+			# 青木套装（docs/08 §7）：治疗加成 + 受治疗灵力护盾
+			var hsb: Dictionary = u.get("setBonuses", {})
+			if hsb.has("heal"):
+				amount = roundi(float(amount) * (1.0 + float(hsb.heal)))
 			t.hp = mini(int(t.stats.hp), int(t.hp) + amount)
+			if hsb.has("shield_heal"):
+				var hs_shield := roundi(float(amount) * float(hsb.shield_heal))
+				t.shield = int(t.shield) + hs_shield
+				log_lines.append("  → %s 获得灵力护盾 %d" % [_n(t), hs_shield])
 			log_lines.append("  → %s 回复 %d 点气血" % [_n(t), amount])
 			_ev({"t": "heal", "u": int(t.uid), "a": amount, "hp": int(t.hp)})
 		elif et == "Shield":
@@ -620,6 +632,9 @@ func _apply_effect(u: Dictionary, skill: Dictionary, e: Dictionary, targets: Arr
 				for b in t.buffs:
 					ctrl_res += float(b.def.ctrlRes)
 				chance *= 1.0 - ctrl_res
+			# 玄冰 2 件：冰冻概率加成（仅控制型=冰冻；不加抽 rng，改动机会值本身）
+			if u.get("setBonuses", {}).has("freeze_chance") and int(def.control) == 1:
+				chance += float(u.setBonuses.freeze_chance)
 			if rng.next() >= chance:
 				log_lines.append("  → %s 抵抗了【%s】" % [_n(t), String(def.name)])
 				continue
@@ -681,15 +696,41 @@ func _remove_first_dmg_buff(u: Dictionary) -> void:
 
 
 func _deal_damage(
-	_attacker: Dictionary, t: Dictionary, dmg: int, skill_element: int, crit: bool = false
+	attacker: Dictionary, t: Dictionary, dmg: int, skill_element: int, crit: bool = false
 ) -> void:
+	# 套装特殊机制（docs/08 §7 EquipSet bonus；logic 层 specialMods 键注入，缺省零影响）
+	var setb: Dictionary = attacker.get("setBonuses", {})
+	if setb.has("dmg_first") and eff(attacker).spd > eff(t).spd:
+		dmg = roundi(float(dmg) * (1.0 + float(setb.dmg_first)))
+	if setb.has("dmg_fire") and int(attacker.element) == 4:
+		dmg = roundi(float(dmg) * (1.0 + float(setb.dmg_fire)))
+	if setb.has("dmg_frozen") and not _find_control_buff(t, 1).is_empty():
+		dmg = roundi(float(dmg) * (1.0 + float(setb.dmg_frozen)))
 	if int(t.shield) > 0:
 		var absorbed := mini(int(t.shield), dmg)
 		t.shield = int(t.shield) - absorbed
 		dmg -= absorbed
 	if dmg > 0:
+		# 引爆溅射（赤炎 3 件）：对灼烧目标的伤害溅射余敌最低血量者（不链式）
+		if setb.has("detonate_splash") and not _find_buff_by_id(t, 2).is_empty():
+			var splash_d := roundi(float(dmg) * float(setb.detonate_splash))
+			var others: Array = []
+			for e0 in _enemies_of(attacker):
+				if int(e0.uid) != int(t.uid):
+					others.append(e0)
+			if not others.is_empty():
+				var sp := _min_hp_ratio(others)
+				var a2: Dictionary = attacker.duplicate()
+				var sb2: Dictionary = setb.duplicate()
+				sb2.erase("detonate_splash")
+				a2.setBonuses = sb2
+				_deal_damage(a2, sp, splash_d, skill_element, false)
+				log_lines.append("  → 溅射 %s 受到 %d 点伤害" % [_n(sp), splash_d])
 		t.hp = int(t.hp) - dmg
-		t.rage = minf(float(g.RAGE_MAX), float(t.rage) + float(g.RAGE_HIT))
+		var hit_gain := float(g.RAGE_HIT)
+		if t.get("setBonuses", {}).has("rage_double"):
+			hit_gain *= float(t.setBonuses.rage_double)
+		t.rage = minf(float(g.RAGE_MAX), float(t.rage) + hit_gain)
 		var sleep := _find_control_buff(t, 3)
 		if not sleep.is_empty():
 			t.buffs.erase(sleep)
@@ -759,8 +800,11 @@ func _round_end() -> void:
 				remain_buffs.append(b)
 		u.buffs = remain_buffs
 		var new_cds: Array = []
+		var cd_cut := 1
+		if u.get("setBonuses", {}).has("cd_reduce"):
+			cd_cut += int(u.setBonuses.cd_reduce)
 		for c in u.cds:
-			new_cds.append(maxi(0, int(c) - 1))
+			new_cds.append(maxi(0, int(c) - cd_cut))
 		u.cds = new_cds
 		u.capBonus = 0.0
 		if int(u.tauntRemain) > 0:

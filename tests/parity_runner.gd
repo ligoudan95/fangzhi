@@ -101,7 +101,7 @@ func _run() -> int:
 					print("    TS: %s" % e)
 					break
 	if failures == 0:
-		print("PARITY OK: %d 个种子 × 9 场景 逐行一致" % seeds.size())
+		print("PARITY OK: %d 个种子 × 10 场景 逐行一致" % seeds.size())
 		return 0
 	print("PARITY: %d/%d 个种子失败" % [failures, seeds.size()])
 	return 1
@@ -441,4 +441,21 @@ func _build_lines(tables: Dictionary, cfg: Dictionary, g: Dictionary, seed: int)
 				% [int(w9.waveUtcSec), String(w9.outcome), int(w9.rounds)]
 			)
 		)
+
+	# 场景10：套装特殊机制（docs/08 §7）——setBonuses 通道全键覆盖的确定性战斗
+	var sb1: Dictionary = BattleSetup.make_pet_input(cfg, 1001, 12, 900, 1)
+	sb1["setBonuses"] = {"dmg_first": 0.4, "cd_reduce": 1, "rage_crit": 20, "rage_double": 2}
+	var sb2: Dictionary = BattleSetup.make_pet_input(cfg, 1002, 12, 900, 1)
+	sb2["setBonuses"] = {"heal": 0.2, "shield_heal": 0.15}
+	var sb3: Dictionary = BattleSetup.make_pet_input(cfg, 1006, 12, 900, 1)
+	sb3["setBonuses"] = {
+		"dmg_fire": 0.15, "detonate_splash": 0.5, "dmg_frozen": 0.5, "freeze_chance": 0.15
+	}
+	var b10 := Battle.new(cfg, [sb1, sb2, sb3], BattleSetup.group_inputs(tables, cfg, 4), seed)
+	var r10: Dictionary = b10.run()
+	lines.append("[setbonus] outcome=%s rounds=%d" % [r10.outcome, r10.rounds])
+	for l10 in r10.log:
+		lines.append(String(l10))
+	for e10 in r10.events:
+		lines.append(_ev_digest(e10))
 	return lines

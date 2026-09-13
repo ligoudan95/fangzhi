@@ -17,6 +17,7 @@ static func equipped_mods(
 	var ratio := {}
 	var active_sets: Array = []
 	var special: Array = []
+	var special_mods := {}
 	var worn_set_ids: Array = []
 	var equips: Dictionary = pet.get("equips", {})
 	for slot in equips:
@@ -68,6 +69,13 @@ static func equipped_mods(
 			if BASIC_STATS.has(stat):
 				ratio[stat] = float(ratio.get(stat, 0.0)) + pct
 			else:
-				# 特殊机制键（dmg_first/cd_reduce 等）战斗消费待引擎扩展，先登记
+				# 特殊机制键（dmg_first/cd_reduce 等）→ 引擎 setBonuses 通道；同名叠加取和
+				special_mods[stat] = float(special_mods.get(stat, 0.0)) + pct
 				special.append("%s(%d件)：%s" % [String(row.name), tier_i, desc])
-	return {"flat": flat, "ratio": ratio, "activeSets": active_sets, "special": special}
+	return {
+		"flat": flat,
+		"ratio": ratio,
+		"activeSets": active_sets,
+		"special": special,
+		"specialMods": special_mods,
+	}
