@@ -9,9 +9,6 @@ const BATTLE_SCENE: PackedScene = preload("res://scenes/battle.tscn")
 ## 窗口适配器（docs/10 §12）：入口场景全局接管
 const WINDOW_FIT: GDScript = preload("res://scripts/view/window_fit.gd")
 
-## FTUE 演示队伍（docs/16 序章教学）：坦/疗/输出
-const FTUE_TEAM: Array = [[1001, 12, 900, 1], [1002, 12, 900, 1], [1005, 12, 950, 1]]
-
 var session: Node
 var _tables: Dictionary = {}
 var _cfg: Dictionary = {}
@@ -191,9 +188,8 @@ func _on_battle_pressed() -> void:
 	var stage: Dictionary = _find_stage(stage_id)
 	if stage.is_empty():
 		return
-	var team: Array = []
-	for t in FTUE_TEAM:
-		team.append(BattleSetup.make_pet_input(_cfg, int(t[0]), int(t[1]), int(t[2]), int(t[3])))
+	# 出战队 = 玩家阵伍（真实资质/性格/等级/突破）；空阵伍回退序章演示三兽（docs/16）
+	var team: Array = session.build_battle_team()
 	var group := int(stage.waves[0])
 	var battle := Battle.new(
 		_cfg,
@@ -223,7 +219,7 @@ func _on_battle_finished(result: Dictionary, stage: Dictionary, capture: bool) -
 			session.settle_stage_drop(stage, int(session.data.rng.rootSeed))
 	elif capture and String(result.outcome) == "captured":
 		session.on_pet_captured(int(result.get("capturedPetId", 1003)))
-		session.on_party_changed(session.data.pets.size() + 1)
+		session.on_party_changed(session.party().size())
 	_refresh_home()
 	_close_timer = get_tree().create_timer(1.2)
 	_close_timer.timeout.connect(func() -> void: battle_overlay.visible = false)
@@ -260,6 +256,7 @@ func _refresh_pet_list() -> void:
 	for child in pet_list.get_children():
 		pet_list.remove_child(child)
 		child.free()
+	$PetPanel/VBox/PetHeader.text = "灵宠（阵伍 %d/3）" % session.party().size()
 	var pets: Array = session.data.pets
 	if pets.is_empty():
 		var empty := Label.new()
@@ -271,16 +268,18 @@ func _refresh_pet_list() -> void:
 		var detail: Dictionary = session.get_pet_detail(int(pet.instanceId))
 		if String(detail.get("error", "")) != "":
 			continue
-		var row := HBoxContainer.new()
+		var card := VBoxContainer.new()
+		card.add_theme_constant_override("separation", 8)
 		var info := Label.new()
-		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info.add_theme_font_size_override("font_size", 28)
+		info.add_theme_font_size_override("font_size", 27)
 		var apt: Dictionary = detail.aptitudes
 		info.text = (
-			"%s Lv%d [%s]  攻%d 防%d 体%d 速%d 灵%d"
+			"%s%s Lv%d/%d [%s]  攻%d 防%d 体%d 速%d 灵%d"
 			% [
+				"【阵】" if bool(detail.inParty) else "",
 				String(detail.name),
 				int(detail.level),
+				int(detail.levelCap),
 				String(detail.nature),
 				int(apt.atk),
 				int(apt.def),
@@ -289,8 +288,44 @@ func _refresh_pet_list() -> void:
 				int(apt.mag),
 			]
 		)
-		row.add_child(info)
-		pet_list.add_child(row)
+		card.add_child(info)
+		var actions := HBoxContainer.new()
+		actions.add_theme_constant_override("separation", 12)
+		var party_btn := Button.new()
+		party_btn.text = "下阵" if bool(detail.inParty) else "上阵"
+		party_btn.add_theme_font_size_override("font_size", 26)
+		party_btn.pressed.connect(_on_pet_party_pressed.bind(int(pet.instanceId)))
+		actions.add_child(party_btn)
+		var feed_btn := Button.new()
+		feed_btn.text = "喂养（%d修为）" % int(detail.feedCost)
+		feed_btn.add_theme_font_size_override("font_size", 26)
+		feed_btn.pressed.connect(_on_pet_feed_pressed.bind(int(pet.instanceId)))
+		actions.add_child(feed_btn)
+		var brk_btn := Button.new()
+		brk_btn.text = "突破"
+		brk_btn.add_theme_font_size_override("font_size", 26)
+		brk_btn.pressed.connect(_on_pet_break_pressed.bind(int(pet.instanceId)))
+		actions.add_child(brk_btn)
+		card.add_child(actions)
+		pet_list.add_child(card)
+
+
+func _on_pet_party_pressed(instance_id: int) -> void:
+	var res: Dictionary = session.toggle_party(instance_id)
+	session.on_party_changed(int(res.size))
+	_refresh_pet_list()
+
+
+func _on_pet_feed_pressed(instance_id: int) -> void:
+	session.feed_pet(instance_id)
+	_refresh_pet_list()
+	_refresh_home()
+
+
+func _on_pet_break_pressed(instance_id: int) -> void:
+	session.breakthrough_pet(instance_id)
+	_refresh_pet_list()
+	_refresh_home()
 
 
 func _on_pet_close_pressed() -> void:

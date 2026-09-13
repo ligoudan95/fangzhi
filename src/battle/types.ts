@@ -34,6 +34,7 @@ export interface PetInput {
   captureable?: boolean;        // 野生可捕捉
   strategy?: string;            // 敌方AI标签
   isEnemy?: boolean;
+  natureMods?: Record<string, number>;  // 性格修正（并入种族偏移，docs/04 §3）
 }
 
 export interface BuffInst { def: BuffRow; stacks: number; remain: number }

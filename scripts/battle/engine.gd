@@ -121,23 +121,19 @@ func _make_unit(p: Dictionary, side: int) -> Dictionary:
 		var skill: Dictionary = cfg.skills.get(int(id), {})
 		if not skill.is_empty() and int(skill.learnLv) <= int(p.level):
 			skills.append(skill)
-	var stats: Dictionary = (
-		BattleStats
-		. compute_stats(
-			int(pet.template),
-			{
-				"hp": pet.offHp,
-				"atk": pet.offAtk,
-				"def": pet.offDef,
-				"spd": pet.offSpd,
-				"mag": pet.offMag,
-				"res": pet.offRes,
-			},
-			int(p.level),
-			p.apts,
-			int(p.realmBreaks),
-			g
-		)
+	var off := {
+		"hp": pet.offHp,
+		"atk": pet.offAtk,
+		"def": pet.offDef,
+		"spd": pet.offSpd,
+		"mag": pet.offMag,
+		"res": pet.offRes,
+	}
+	# 性格修正（docs/04 §3）：并入种族偏移项；缺省不改变原对拍行为
+	for k in p.get("natureMods", {}):
+		off[k] = float(off.get(k, 0.0)) + float(p.natureMods[k])
+	var stats: Dictionary = BattleStats.compute_stats(
+		int(pet.template), off, int(p.level), p.apts, int(p.realmBreaks), g
 	)
 	var cds: Array = []
 	cds.resize(skills.size())

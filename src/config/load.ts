@@ -29,13 +29,22 @@ export function loadConfig(): BattleConfig {
   return { g, pets, skills, buffs, skillPool: pool };
 }
 
-/** 从种族表构造战斗单位输入（资质统一值；资质roll功能后续版本接入） */
-export function makePetInput(cfg: BattleConfig, petId: number, level: number, apt: number, realmBreaks: number, opts?: { captureable?: boolean; strategy?: string }): PetInput {
-  const apts = { atk: apt, def: apt, hp: apt, spd: apt, mag: apt };
+/**
+ * 从种族表构造战斗单位输入；opts.apts 可传五维资质、opts.natureMods 性格修正
+ * （并入引擎偏移项，docs/04 §3）——缺省保持旧行为（对拍兼容）
+ */
+export function makePetInput(cfg: BattleConfig, petId: number, level: number, apt: number, realmBreaks: number, opts?: {
+  captureable?: boolean; strategy?: string; apts?: { atk: number; def: number; hp: number; spd: number; mag: number };
+  natureMods?: Record<string, number>;
+}): PetInput {
+  const apts = opts?.apts ?? { atk: apt, def: apt, hp: apt, spd: apt, mag: apt };
   const skillIds = (cfg.skillPool.get(petId) ?? [])
     .filter(entry => entry && entry.learnLv <= level)
     .map(entry => entry.skillId);
-  return { petId, level, apts, realmBreaks, skillIds, captureable: opts?.captureable, strategy: opts?.strategy };
+  return {
+    petId, level, apts, realmBreaks, skillIds,
+    captureable: opts?.captureable, strategy: opts?.strategy, natureMods: opts?.natureMods,
+  };
 }
 
 /** 读取敌人组（EnemyGroup 表） */

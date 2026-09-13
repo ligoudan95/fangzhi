@@ -107,9 +107,12 @@ export class Battle {
     const skills = p.skillIds
       .map(id => this.cfg.skills.get(id))
       .filter((skill): skill is SkillRow => !!skill && skill.learnLv <= p.level);
-    const stats = computeStats(pet.template,
-      { hp: pet.offHp, atk: pet.offAtk, def: pet.offDef, spd: pet.offSpd, mag: pet.offMag, res: pet.offRes },
-      p.level, p.apts, p.realmBreaks, this.g);
+    // 性格修正（docs/04 §3）：并入种族偏移项；缺省不改变原对拍行为
+    const off: Record<string, number> = {
+      hp: pet.offHp, atk: pet.offAtk, def: pet.offDef, spd: pet.offSpd, mag: pet.offMag, res: pet.offRes,
+    };
+    for (const [k, v] of Object.entries(p.natureMods ?? {})) off[k] = (off[k] ?? 0) + v;
+    const stats = computeStats(pet.template, off, p.level, p.apts, p.realmBreaks, this.g);
     return {
       uid: this.uidSeq++, side, petId: p.petId, name: pet.name, element: pet.element, level: p.level,
       stats, hp: stats.hp, shield: 0, rage: 0,

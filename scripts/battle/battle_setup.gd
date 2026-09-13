@@ -56,11 +56,20 @@ static func build_cfg(tables: Dictionary) -> Dictionary:
 	}
 
 
-## 从种族表构造战斗单位输入（资质统一值；资质 roll 后续版本接入）
+## 从种族表构造战斗单位输入；opts.apts 可传五维资质（{atk,def,hp,spd,mag}），
+## opts.natureMods 可传性格修正（并入引擎偏移项，docs/04 §3）——缺省保持旧行为（对拍兼容）
 static func make_pet_input(
 	cfg: Dictionary, pet_id: int, level: int, apt: int, realm_breaks: int, opts: Dictionary = {}
 ) -> Dictionary:
 	var apts := {"atk": apt, "def": apt, "hp": apt, "spd": apt, "mag": apt}
+	if opts.has("apts"):
+		apts = {
+			"atk": int(opts.apts.atk),
+			"def": int(opts.apts.def),
+			"hp": int(opts.apts.hp),
+			"spd": int(opts.apts.spd),
+			"mag": int(opts.apts.mag),
+		}
 	var skill_ids: Array = []
 	for entry in cfg.skillPool.get(pet_id, []):
 		if not entry.is_empty() and int(entry.learnLv) <= level:
@@ -76,6 +85,8 @@ static func make_pet_input(
 		input["captureable"] = opts["captureable"]
 	if opts.has("strategy"):
 		input["strategy"] = opts["strategy"]
+	if opts.has("natureMods"):
+		input["natureMods"] = opts["natureMods"]
 	return input
 
 

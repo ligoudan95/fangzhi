@@ -1,3 +1,5 @@
+# gdlint: disable=max-public-methods
+# 会话编排器是垂直切片粘合层，公共方法数量属预期
 ## doc: 15 §3.5 / 16 §2 / 08 §12
 ## 垂直切片会话（View 层装配器）：读设备 UTC → 调 Config/Save/Logic；
 ## 写档成功才替换内存状态（docs/15 §3.5 单向流）。串联：
@@ -7,6 +9,9 @@ class_name GameSession
 extends Node
 
 const SAVE_SCRIPT: GDScript = preload("res://scripts/infra/save_service.gd")
+
+## 序章演示三兽（docs/16）：阵伍为空时的出战回退
+const FTUE_TEAM_IDS: Array = [[1001, 12, 900, 1], [1002, 12, 900, 1], [1005, 12, 950, 1]]
 
 var data: Dictionary = {}
 var settlement_seq: int = 0
@@ -168,6 +173,11 @@ func on_pet_captured(pet_id: int) -> Array:
 			)
 		)
 		_ensure_pet_condition(cap_count)
+		# 阵容未满自动上阵（FTUE：收服即入队，docs/16 序章）
+		if not data.player.has("party"):
+			data.player["party"] = []
+		if data.player.party.size() < 3:
+			data.player.party.append(cap_count)
 	return _apply_quest(2, pet_id, 1)
 
 
@@ -204,6 +214,9 @@ func get_pet_detail(instance_id: int) -> Dictionary:
 			"captureNote": String(pet_row.captureNote),
 			"stamina": stamina_milli / 1000,
 			"mood": mood_milli / 1000,
+			"inParty": data.player.get("party", []).has(int(pet.instanceId)),
+			"levelCap": PetGrowth.level_cap(int(pet.realmBreaks), _g()),
+			"feedCost": PetGrowth.feed_cost(int(pet.level), _g()),
 			"error": "",
 		}
 	return {"error": "实例不存在 %d" % instance_id}
@@ -211,6 +224,106 @@ func get_pet_detail(instance_id: int) -> Dictionary:
 
 func on_party_changed(size: int) -> Array:
 	return _apply_quest(6, 0, size)
+
+
+# ---------- 阵伍与成长（docs/01 §144 修为驱动 / docs/04 §2-§4） ----------
+
+
+func _g() -> Dictionary:
+	return _tables.get("GlobalConst", {})
+
+
+## 当前阵伍（instanceId 列表；旧档缺字段时空）
+func party() -> Array:
+	return data.player.get("party", [])
+
+
+## 上阵/下阵切换；阵伍上限 3；返回 {ok, error, size}
+func toggle_party(instance_id: int) -> Dictionary:
+	var party_arr: Array = data.player.get("party", [])
+	if party_arr.has(instance_id):
+		party_arr.erase(instance_id)
+		data.player.party = party_arr
+		return {"ok": true, "error": "", "size": party_arr.size()}
+	var owned := false
+	for pet in data.pets:
+		if int(pet.instanceId) == instance_id:
+			owned = true
+			break
+	if not owned:
+		return {"ok": false, "error": "未拥有该灵宠", "size": party_arr.size()}
+	if party_arr.size() >= 3:
+		return {"ok": false, "error": "阵伍已满（3）", "size": party_arr.size()}
+	party_arr.append(instance_id)
+	data.player.party = party_arr
+	return {"ok": true, "error": "", "size": party_arr.size()}
+
+
+## 修为喂养 +1 级（docs/01 §144：修为为唯一养成资源；数值临时口径见 GlobalConst）
+func feed_pet(instance_id: int) -> Dictionary:
+	for pet in data.pets:
+		if int(pet.instanceId) != instance_id:
+			continue
+		var res: Dictionary = PetGrowth.feed(pet, int(data.player.cultivation), _g())
+		if bool(res.ok):
+			data.player.cultivation = int(data.player.cultivation) - int(res.cost)
+			pet.level = int(res.level)
+		return res
+	return {"ok": false, "reason": "实例不存在 %d" % instance_id}
+
+
+## 突破（docs/02 §3.3 门槛/消耗；docs/04 §4 突破链）
+func breakthrough_pet(instance_id: int) -> Dictionary:
+	for pet in data.pets:
+		if int(pet.instanceId) != instance_id:
+			continue
+		var pet_row := {}
+		for p in _tables.get("PetBase", []):
+			if int(p.petId) == int(pet.petId):
+				pet_row = p
+				break
+		var res: Dictionary = PetGrowth.breakthrough(
+			pet, pet_row, int(data.player.cultivation), _g()
+		)
+		if bool(res.ok):
+			data.player.cultivation = int(data.player.cultivation) - int(res.cost)
+			pet.realmBreaks = int(res.realmBreaks)
+		return res
+	return {"ok": false, "reason": "实例不存在 %d" % instance_id}
+
+
+## 出战队伍：阵伍灵宠 → 真实资质+性格+等级+突破；空阵伍回退序章演示三兽（docs/16）
+func build_battle_team() -> Array:
+	var team: Array = []
+	var cfg := _build_battle_cfg()
+	for instance_id in data.player.get("party", []):
+		for pet in data.pets:
+			if int(pet.instanceId) != int(instance_id):
+				continue
+			var pet_row := {}
+			for p in _tables.get("PetBase", []):
+				if int(p.petId) == int(pet.petId):
+					pet_row = p
+					break
+			if pet_row.is_empty():
+				continue
+			var apts: Dictionary = PetIndividuality.roll_aptitudes(pet_row, int(pet.aptitudeSeed))
+			var nature := PetIndividuality.roll_nature(pet_row, int(pet.natureSeed))
+			team.append(
+				BattleSetup.make_pet_input(
+					cfg,
+					int(pet.petId),
+					int(pet.level),
+					900,
+					int(pet.realmBreaks),
+					{"apts": apts, "natureMods": PetIndividuality.nature_modifiers(nature)}
+				)
+			)
+			break
+	if team.is_empty():
+		for t in FTUE_TEAM_IDS:
+			team.append(BattleSetup.make_pet_input(cfg, int(t[0]), int(t[1]), int(t[2]), int(t[3])))
+	return team
 
 
 func on_crop_harvested(crop_id: int) -> Array:
@@ -457,12 +570,9 @@ func _recipe_of(recipe_id: int) -> Dictionary:
 	return {}
 
 
+## 兽潮守村队 = 出战队（阵伍真实资质/性格/突破；docs/05 §9）
 func _build_defense_team() -> Array:
-	var team: Array = []
-	var cfg := _build_battle_cfg()
-	for pet in data.pets:
-		team.append(BattleSetup.make_pet_input(cfg, int(pet.petId), int(pet.level), 900, 0))
-	return team
+	return build_battle_team()
 
 
 func _build_battle_cfg() -> Dictionary:

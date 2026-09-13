@@ -30,7 +30,13 @@ static func create_new(now_utc: int, root_seed: int) -> Dictionary:
 			"clockRollbackCount": 0,
 		},
 		"player":
-		{"realmId": 1, "realmLayer": 0, "cultivation": 0, "quests": QuestTracker.create_state()},
+		{
+			"realmId": 1,
+			"realmLayer": 0,
+			"cultivation": 0,
+			"party": [],
+			"quests": QuestTracker.create_state(),
+		},
 		"wallet": {"beastShell": 0, "spiritCrystal": 0, "totemEmblem": 0},
 		"pets": [],
 		"equipment": {"items": [], "pityCounters": {}, "appliedSettlementIds": []},
