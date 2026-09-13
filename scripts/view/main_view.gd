@@ -42,6 +42,8 @@ var _close_timer: SceneTreeTimer
 @onready var farm_plant: Button = $FarmPanel/VBox/FarmPlant
 @onready var farm_skip: Button = $FarmPanel/VBox/FarmSkip
 @onready var village_overlay: Control = $VillageOverlay
+@onready var offline_report_panel: Control = $OfflineReportPanel
+@onready var offline_report_text: Label = $OfflineReportPanel/VBox/ReportText
 @onready var farm_close: Button = $FarmPanel/VBox/FarmClose
 
 
@@ -112,6 +114,7 @@ func _close_panels() -> void:
 	pet_panel.visible = false
 	farm_panel.visible = false
 	village_overlay.visible = false
+	offline_report_panel.visible = false
 
 
 func _enter_home() -> void:
@@ -163,8 +166,31 @@ func _on_new_game_pressed() -> void:
 func _on_continue_pressed() -> void:
 	if session.load_game():
 		_enter_home()
+		# 回归开屏结算（docs/15 §1.5/§2）：按离线时长补结算 → 存档 → 展示报告
+		var now := int(Time.get_unix_time_from_system())
+		var elapsed := now - int(session.data.meta.lastObservedUtcSec)
+		if elapsed > 60:
+			var report: Dictionary = session.settle_offline(now)
+			session.save_game()
+			_refresh_home()
+			_show_offline_report(elapsed, session.offline_summary_lines(report))
 	else:
 		_on_new_game_pressed()
+
+
+## 离线结算报告（模态）：领取即关闭（奖励已按游标幂等入账并落档）
+func _show_offline_report(elapsed_sec: int, lines: Array[String]) -> void:
+	var hours := float(elapsed_sec) / 3600.0
+	var head := "离开 %.1f 小时" % hours
+	# gdformat 会把字符串内换行转义重排成真实换行——用 chr(10) 规避
+	var nl := String.chr(10)
+	offline_report_text.text = head + nl + nl + nl.join(lines)
+	_close_panels()
+	offline_report_panel.visible = true
+
+
+func _on_offline_claim_pressed() -> void:
+	offline_report_panel.visible = false
 
 
 # ---------- 任务与战斗 ----------

@@ -248,6 +248,45 @@ grow_horizontal = 2
 grow_vertical = 2
 visible = false
 
+[node name="OfflineReportPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -440.0
+offset_top = -360.0
+offset_right = 440.0
+offset_bottom = 360.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+
+[node name="VBox" type="VBoxContainer" parent="OfflineReportPanel"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Title" type="Label" parent="OfflineReportPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "离线结算报告"
+horizontal_alignment = 1
+
+[node name="ReportText" type="Label" parent="OfflineReportPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 30
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ClaimButton" type="Button" parent="OfflineReportPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 84)
+theme_override_font_sizes/font_size = 34
+text = "领取"
+
 [node name="VillageOverlay" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -296,3 +335,4 @@ text = "关闭"
 [connection signal="pressed" from="FarmPanel/VBox/FarmPlant" to="." method="_on_farm_plant_pressed"]
 [connection signal="pressed" from="FarmPanel/VBox/FarmSkip" to="." method="_on_farm_skip_pressed"]
 [connection signal="pressed" from="FarmPanel/VBox/FarmClose" to="." method="_on_farm_close_pressed"]
+[connection signal="pressed" from="OfflineReportPanel/VBox/ClaimButton" to="." method="_on_offline_claim_pressed"]

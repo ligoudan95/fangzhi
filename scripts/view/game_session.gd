@@ -714,7 +714,75 @@ func settle_offline(now_utc: int) -> Dictionary:
 	report["rest"] = {"pets": data.village.petConditions.size(), "hours": rest_hours}
 	data.meta.updatedAtUtcSec = now_utc
 	data.meta.lastObservedUtcSec = now_utc
+	_store_report_summary(now_utc, report)
 	return report
+
+
+## 结算报告摘要入 pendingReports（docs/15 §3.5：游标幂等防重复发奖；此处存展示副本，留最近 5 份）
+func _store_report_summary(now_utc: int, report: Dictionary) -> void:
+	var pr: Dictionary = data.settlement.get("pendingReports", {})
+	pr["%d" % now_utc] = {
+		"at": now_utc,
+		"cropOutputs": report.get("crops", {}).get("outputs", []).size(),
+		"mineOutputs": report.get("mines", {}).get("outputs", []).size(),
+		"spiritGained": _wallet_delta(report, "spiritCrystal"),
+		"tideWaves": report.get("beastTide", {}).get("settledCount", 0),
+		"craftOutputs": report.get("crafts", {}).get("outputs", []).size(),
+		"restedPets": report.get("rest", {}).get("pets", 0),
+	}
+	while pr.size() > 5:
+		var oldest := ""
+		for k in pr.keys():
+			if oldest == "" or String(k) < oldest:
+				oldest = String(k)
+		pr.erase(oldest)
+	data.settlement.pendingReports = pr
+
+
+func _wallet_delta(report: Dictionary, _key: String) -> int:
+	# 钱包增量从矿场输出推（itemId=-1 为灵晶）
+	var total := 0
+	for o in report.get("mines", {}).get("outputs", []):
+		if int(o.itemId) == -1:
+			total += int(o.amount)
+	return total
+
+
+## 人话摘要行（开屏结算报告用）
+func offline_summary_lines(report: Dictionary) -> Array[String]:
+	var lines: Array[String] = []
+	var crops: Array = report.get("crops", {}).get("outputs", [])
+	if not crops.is_empty():
+		var total := 0
+		for o in crops:
+			total += int(o.amount)
+		lines.append("灵田收获 %d 笔（共 %d 份）" % [crops.size(), total])
+	var mines: Array = report.get("mines", {}).get("outputs", [])
+	if not mines.is_empty():
+		var spirit := 0
+		var items_n := 0
+		for o in mines:
+			if int(o.itemId) == -1:
+				spirit += int(o.amount)
+			else:
+				items_n += 1
+		lines.append("矿场产出 %d 笔（灵晶 +%d）" % [items_n + (1 if spirit > 0 else 0), spirit])
+	var tide: Dictionary = report.get("beastTide", {})
+	if int(tide.get("settledCount", 0)) > 0:
+		var wins := 0
+		for w in tide.get("waves", []):
+			if String(w.outcome) == "victory":
+				wins += 1
+		lines.append("兽潮防守 %d 波（胜 %d）" % [int(tide.settledCount), wins])
+	var crafts: Array = report.get("crafts", {}).get("outputs", [])
+	if not crafts.is_empty():
+		lines.append("锻造/炼丹完成 %d 件" % crafts.size())
+	var rest: Dictionary = report.get("rest", {})
+	if int(rest.get("pets", 0)) > 0:
+		lines.append("兽栏休整 %d 只灵宠（%.1f 小时）" % [int(rest.pets), float(rest.hours)])
+	if lines.is_empty():
+		lines.append("离线期间暂无产出")
+	return lines
 
 
 func _recipe_of(recipe_id: int) -> Dictionary:
