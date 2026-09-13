@@ -21,9 +21,12 @@ var _close_timer: SceneTreeTimer
 @onready var quest_title: Label = $HomePanel/QuestCard/VBox/QuestTitle
 @onready var quest_goal: Label = $HomePanel/QuestCard/VBox/QuestGoal
 @onready var story_button: Button = $HomePanel/QuestCard/VBox/StoryButton
+@onready var quest_card: PanelContainer = $HomePanel/QuestCard
 @onready var battle_button: Button = $HomePanel/Actions/BattleButton
 @onready var equip_button: Button = $HomePanel/Actions/EquipButton
+@onready var pet_button: Button = $HomePanel/Actions/PetButton
 @onready var farm_button: Button = $HomePanel/Actions/FarmButton
+@onready var village_button: Button = $HomePanel/Actions/VillageButton
 @onready var save_button: Button = $HomePanel/Actions/SaveButton
 @onready var status_label: Label = $HomePanel/StatusRow/StatusLabel
 @onready var equip_panel: Control = $EquipPanel
@@ -46,7 +49,47 @@ func _ready() -> void:
 	add_child(session)
 	_tables = session._tables
 	_cfg = BattleSetup.build_cfg(_tables)
+	_apply_panel_styles()
 	_show_title()
+
+
+## 页签与弹窗视觉规范（docs/10 §5 岩彩暖色）：页签=暖棕底+边框按钮；弹窗=深棕底+金边，与背景拉开对比
+func _apply_panel_styles() -> void:
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color("#3a2f22")
+	panel_style.border_color = Color("#c9a86a")
+	panel_style.set_border_width_all(3)
+	panel_style.set_corner_radius_all(16)
+	panel_style.content_margin_left = 24.0
+	panel_style.content_margin_right = 24.0
+	panel_style.content_margin_top = 20.0
+	panel_style.content_margin_bottom = 20.0
+	for panel in [equip_panel, pet_panel, farm_panel, quest_card]:
+		panel.add_theme_stylebox_override("panel", panel_style)
+	var tab_buttons: Array = [
+		battle_button, equip_button, pet_button, farm_button, village_button, save_button
+	]
+	for btn in tab_buttons:
+		btn.add_theme_stylebox_override("normal", _tab_style(Color("#4a3b28"), Color("#8a744f")))
+		btn.add_theme_stylebox_override("hover", _tab_style(Color("#5d4b33"), Color("#c9a86a")))
+		btn.add_theme_stylebox_override("pressed", _tab_style(Color("#332918"), Color("#ffd98a")))
+		btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+		btn.add_theme_color_override("font_color", Color("#f2e6c9"))
+		btn.add_theme_color_override("font_hover_color", Color("#fff3d6"))
+		btn.add_theme_color_override("font_pressed_color", Color("#ffd98a"))
+
+
+func _tab_style(bg: Color, border: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = bg
+	style.border_color = border
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(10)
+	style.content_margin_left = 14.0
+	style.content_margin_right = 14.0
+	style.content_margin_top = 8.0
+	style.content_margin_bottom = 8.0
+	return style
 
 
 # ---------- 导航 ----------

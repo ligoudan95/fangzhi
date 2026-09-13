@@ -31,6 +31,20 @@ var _building_buttons: Dictionary = {}
 @onready var close_button: Button = $InfoPanel/VBox/CloseButton
 
 
+func _ready() -> void:
+	# 与主场景弹窗同款视觉规范（docs/10 §5）：深棕底+金边
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color("#3a2f22")
+	panel_style.border_color = Color("#c9a86a")
+	panel_style.set_border_width_all(3)
+	panel_style.set_corner_radius_all(16)
+	panel_style.content_margin_left = 24.0
+	panel_style.content_margin_right = 24.0
+	panel_style.content_margin_top = 20.0
+	panel_style.content_margin_bottom = 20.0
+	info_panel.add_theme_stylebox_override("panel", panel_style)
+
+
 func setup(session: Node) -> void:
 	_session = session
 	_build_grid()
