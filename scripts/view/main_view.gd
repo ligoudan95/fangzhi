@@ -29,6 +29,9 @@ var _close_timer: SceneTreeTimer
 @onready var equip_panel: Control = $EquipPanel
 @onready var equip_list: VBoxContainer = $EquipPanel/VBox/EquipScroll/EquipList
 @onready var equip_close: Button = $EquipPanel/VBox/EquipClose
+@onready var pet_panel: Control = $PetPanel
+@onready var pet_list: VBoxContainer = $PetPanel/PetScroll/PetList
+@onready var pet_close: Button = $PetPanel/PetClose
 @onready var farm_panel: Control = $FarmPanel
 @onready var farm_info: Label = $FarmPanel/VBox/FarmInfo
 @onready var farm_plant: Button = $FarmPanel/VBox/FarmPlant
@@ -188,6 +191,53 @@ func _latest_unlocked_stage() -> int:
 
 
 # ---------- 装备 ----------
+
+
+## 灵宠面板（docs/04 §2/§3）：资质五维+性格+突破阶段展示
+func _on_pet_pressed() -> void:
+	_refresh_pet_list()
+	pet_panel.visible = true
+
+
+func _refresh_pet_list() -> void:
+	for child in pet_list.get_children():
+		pet_list.remove_child(child)
+		child.free()
+	var pets: Array = session.data.pets
+	if pets.is_empty():
+		var empty := Label.new()
+		empty.text = "暂无灵宠——出战捕捉"
+		empty.add_theme_font_size_override("font_size", 30)
+		pet_list.add_child(empty)
+		return
+	for pet in pets:
+		var detail: Dictionary = session.get_pet_detail(int(pet.instanceId))
+		if String(detail.get("error", "")) != "":
+			continue
+		var row := HBoxContainer.new()
+		var info := Label.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info.add_theme_font_size_override("font_size", 28)
+		var apt: Dictionary = detail.aptitudes
+		info.text = (
+			"%s Lv%d [%s]  攻%d 防%d 体%d 速%d 灵%d"
+			% [
+				String(detail.name),
+				int(detail.level),
+				String(detail.nature),
+				int(apt.atk),
+				int(apt.def),
+				int(apt.hp),
+				int(apt.spd),
+				int(apt.mag),
+			]
+		)
+		row.add_child(info)
+		pet_list.add_child(row)
+
+
+func _on_pet_close_pressed() -> void:
+	pet_panel.visible = false
 
 
 func _on_equip_pressed() -> void:

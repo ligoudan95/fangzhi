@@ -123,7 +123,62 @@ func on_stage_cleared(stage_id: int) -> Array:
 
 
 func on_pet_captured(pet_id: int) -> Array:
+	# 灵宠个体化（docs/04 §2/§3）：捕捉时 roll 资质+性格，存种子不存值
+	var pet_row := {}
+	for p in _tables.get("PetBase", []):
+		if int(p.petId) == pet_id:
+			pet_row = p
+			break
+	if not pet_row.is_empty():
+		var root_seed := int(data.rng.rootSeed)
+		var cap_count: int = data.pets.size() + 1
+		var apt_seed := EquipDropRng.mix(root_seed ^ (pet_id * 31 + cap_count * 7))
+		var nature_seed := EquipDropRng.mix(apt_seed ^ 0x4E415445)
+		(
+			data
+			. pets
+			. append(
+				{
+					"instanceId": cap_count,
+					"petId": pet_id,
+					"level": 1,
+					"exp": 0,
+					"realmBreaks": 0,
+					"aptitudeSeed": apt_seed,
+					"natureSeed": nature_seed,
+				}
+			)
+		)
 	return _apply_quest(2, pet_id, 1)
+
+
+## 灵宠详情：按存储种子重展开资质+性格（幂等）
+func get_pet_detail(instance_id: int) -> Dictionary:
+	for pet in data.pets:
+		if int(pet.instanceId) != instance_id:
+			continue
+		var pet_row := {}
+		for p in _tables.get("PetBase", []):
+			if int(p.petId) == int(pet.petId):
+				pet_row = p
+				break
+		if pet_row.is_empty():
+			return {"error": "未知灵宠 %d" % int(pet.petId)}
+		return {
+			"instanceId": int(pet.instanceId),
+			"petId": int(pet.petId),
+			"name": String(pet_row.name),
+			"element": int(pet_row.element),
+			"quality": int(pet_row.quality),
+			"level": int(pet.level),
+			"realmBreaks": int(pet.realmBreaks),
+			"aptitudes": PetIndividuality.roll_aptitudes(pet_row, int(pet.aptitudeSeed)),
+			"nature": PetIndividuality.roll_nature(pet_row, int(pet.natureSeed)),
+			"breaksChain": PetIndividuality._as_array(pet_row.breaks),
+			"captureNote": String(pet_row.captureNote),
+			"error": "",
+		}
+	return {"error": "实例不存在 %d" % instance_id}
 
 
 func on_party_changed(size: int) -> Array:
