@@ -56,9 +56,9 @@ func test_wear_requires_identified_and_replaces_slot() -> void:
 	assert_bool(bool(worn.ok)).is_true()
 	var pet: Dictionary = session.data.pets[0]
 	assert_int(pet.equips.size()).is_equal(1)
-	# 出战队带装备平面加成
+	# 出战队带装备平面加成（借兽补位至 3，玩家宠在首位）
 	var team: Array = session.build_battle_team()
-	assert_int(team.size()).is_equal(1)
+	assert_int(team.size()).is_equal(3)
 	assert_bool(team[0].get("statMods", {}).size() > 0).is_true()
 
 

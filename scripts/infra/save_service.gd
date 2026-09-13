@@ -63,11 +63,14 @@ func atomic_write(path: String, text: String) -> bool:
 
 
 ## 保存：槽位白名单 → 并发 generation → 信封+checksum → 原子写；返回 {ok, generation, reason}
-func save_slot(slot: String, data: Dictionary) -> Dictionary:
+## force=true 采认文件当前 generation（新游戏覆盖旧档场景：全新服务实例 mem=-1 撞上遗留档不再是死锁）
+func save_slot(slot: String, data: Dictionary, force: bool = false) -> Dictionary:
 	if not _is_valid_slot(slot):
 		return {"ok": false, "generation": -1, "reason": "非法槽位名：%s" % slot}
 	var expected := int(_generations.get(slot, -1))
 	var current := _read_generation(slot_path(slot))
+	if force:
+		expected = current
 	if current != expected:
 		return {
 			"ok": false,

@@ -44,6 +44,8 @@ var _close_timer: SceneTreeTimer
 @onready var village_overlay: Control = $VillageOverlay
 @onready var offline_report_panel: Control = $OfflineReportPanel
 @onready var offline_report_text: Label = $OfflineReportPanel/VBox/ReportText
+@onready var realm_panel: Control = $RealmPanel
+@onready var realm_info_text: Label = $RealmPanel/VBox/InfoText
 @onready var farm_close: Button = $FarmPanel/VBox/FarmClose
 
 
@@ -115,6 +117,7 @@ func _close_panels() -> void:
 	farm_panel.visible = false
 	village_overlay.visible = false
 	offline_report_panel.visible = false
+	realm_panel.visible = false
 
 
 func _enter_home() -> void:
@@ -136,8 +139,10 @@ func _refresh_home() -> void:
 	battle_button.visible = not active.is_empty() and int(active.goalType) in [1, 2]
 	var pets: int = session.data.pets.size()
 	var equips: int = session.data.equipment.items.size()
+	var realm: Dictionary = session.realm_info()
 	status_label.text = (
-		"修为 %d · 灵宠 %d · 装备 %d" % [int(session.data.player.cultivation), pets, equips]
+		"%s · 修为 %d · 灵宠 %d · 装备 %d"
+		% [String(realm.display), int(session.data.player.cultivation), pets, equips]
 	)
 
 
@@ -247,7 +252,10 @@ func _on_battle_finished(result: Dictionary, stage: Dictionary, capture: bool) -
 		if int(stage.dropCount) > 0:
 			session.settle_stage_drop(stage, int(session.data.rng.rootSeed))
 	elif capture and String(result.outcome) == "captured":
-		session.on_pet_captured(int(result.get("capturedPetId", 1003)))
+		# 捕捉等级跟随敌方野性等级（docs/04：捉来的兽保有野性）
+		session.on_pet_captured(
+			int(result.get("capturedPetId", 1003)), _enemy_level_of_stage(stage)
+		)
 		session.on_party_changed(session.party().size())
 	_refresh_home()
 	_close_timer = get_tree().create_timer(1.2)
@@ -545,6 +553,45 @@ func _on_farm_skip_pressed() -> void:
 
 func _on_farm_close_pressed() -> void:
 	farm_panel.visible = false
+
+
+# ---------- 境界（docs/02 §2.2） ----------
+
+
+func _on_realm_pressed() -> void:
+	_close_panels()
+	_refresh_realm_panel()
+	realm_panel.visible = true
+
+
+func _refresh_realm_panel() -> void:
+	var info: Dictionary = session.realm_info()
+	var nl := String.chr(10)
+	realm_info_text.text = (
+		"当前境界：" + String(info.display) + nl + nl + "下一层需修为 " + str(int(info.nextCost))
+	)
+
+
+func _on_realm_advance_pressed() -> void:
+	var res: Dictionary = session.advance_realm()
+	_refresh_realm_panel()
+	_refresh_home()
+	if not bool(res.ok):
+		realm_info_text.text = String(res.reason)
+
+
+func _on_realm_close_pressed() -> void:
+	realm_panel.visible = false
+
+
+## 关卡首波敌人的最高等级（捕捉入场等级基准）
+func _enemy_level_of_stage(stage: Dictionary) -> int:
+	var group_id := int(stage.waves[0])
+	var max_lv := 1
+	for e in _tables.get("EnemyGroup", []):
+		if int(e.groupId) == group_id:
+			max_lv = maxi(max_lv, int(e.level))
+	return max_lv
 
 
 # ---------- 保存 ----------

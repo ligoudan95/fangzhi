@@ -127,6 +127,12 @@ custom_minimum_size = Vector2(0, 96)
 theme_override_font_sizes/font_size = 36
 text = "村落"
 
+[node name="RealmButton" type="Button" parent="HomePanel/Actions"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 96)
+theme_override_font_sizes/font_size = 36
+text = "境界"
+
 [node name="SaveButton" type="Button" parent="HomePanel/Actions"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 96)
@@ -287,6 +293,51 @@ custom_minimum_size = Vector2(0, 84)
 theme_override_font_sizes/font_size = 34
 text = "领取"
 
+[node name="RealmPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -260.0
+offset_right = 400.0
+offset_bottom = 260.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+
+[node name="VBox" type="VBoxContainer" parent="RealmPanel"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Title" type="Label" parent="RealmPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "境界"
+horizontal_alignment = 1
+
+[node name="InfoText" type="Label" parent="RealmPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 30
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AdvanceButton" type="Button" parent="RealmPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 84)
+theme_override_font_sizes/font_size = 34
+text = "突破"
+
+[node name="CloseButton" type="Button" parent="RealmPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 72)
+theme_override_font_sizes/font_size = 30
+text = "关闭"
+
 [node name="VillageOverlay" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -330,6 +381,9 @@ text = "关闭"
 [connection signal="pressed" from="HomePanel/Actions/FarmButton" to="." method="_on_farm_pressed"]
 [connection signal="pressed" from="HomePanel/Actions/VillageButton" to="." method="_on_village_pressed"]
 [connection signal="pressed" from="HomePanel/Actions/SaveButton" to="." method="_on_save_pressed"]
+[connection signal="pressed" from="HomePanel/Actions/RealmButton" to="." method="_on_realm_pressed"]
+[connection signal="pressed" from="RealmPanel/VBox/AdvanceButton" to="." method="_on_realm_advance_pressed"]
+[connection signal="pressed" from="RealmPanel/VBox/CloseButton" to="." method="_on_realm_close_pressed"]
 [connection signal="pressed" from="PetPanel/VBox/PetClose" to="." method="_on_pet_close_pressed"]
 [connection signal="pressed" from="EquipPanel/VBox/EquipClose" to="." method="_on_equip_close_pressed"]
 [connection signal="pressed" from="FarmPanel/VBox/FarmPlant" to="." method="_on_farm_plant_pressed"]

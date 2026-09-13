@@ -61,20 +61,33 @@ func test_assign_mine_slot_cap() -> void:
 	var r1: Dictionary = session.assign_mine(1, 1000000)
 	assert_bool(bool(r1.ok)).is_true()
 	assert_int(int(r1.slotId)).is_equal(1)
-	# 矿场 lv0 → 1 矿位，第二个拒绝
-	var r2: Dictionary = session.assign_mine(2, 1000001)
+	# 矿场 lv0 → 1 矿位，第二层（淬体矿 1）拒绝——矿位满
+	var r2: Dictionary = session.assign_mine(1, 1000001)
 	assert_bool(bool(r2.ok)).is_false()
 	assert_str(String(r2.error)).contains("矿位已满")
-	# 升矿场（先升议事堂解锁）→ 可再开
+	# 矿层 2 需凝血境界（unlockRealm 门禁）
+	var gated: Dictionary = session.assign_mine(2, 1000001)
+	assert_bool(bool(gated.ok)).is_false()
+	assert_str(String(gated.error)).contains("境界不足")
+	# 矿场建筑需凝血境界：先推境界再升矿场（议事堂门一并解除）→ 可再开淬体矿层
+	session.data.player.cultivation += 22000
+	for i in 12:
+		if not bool(session.advance_realm().ok):
+			break
 	session.data.village.buildings.append({"buildingId": 1, "level": 2, "damagedUntilUtcSec": 0})
 	session.data.wallet.spiritCrystal = 10000
-	session.upgrade_building(5)
-	var r3: Dictionary = session.assign_mine(2, 1000002)
+	assert_bool(bool(session.upgrade_building(5).ok)).is_true()
+	var r3: Dictionary = session.assign_mine(1, 1000002)
 	assert_bool(bool(r3.ok)).is_true()
 
 
 func test_craft_flow_and_offline_settle() -> void:
 	var session := _make_session()
+	# 配方 4 需凝血境界：先推境界（淬体 9 层 + 凝血一层 ≈ 21143 修为）
+	session.data.player.cultivation += 22000
+	for i in 12:
+		if not bool(session.advance_realm().ok):
+			break
 	# 锻造炉 lv0 → 队列 1；配方 4 需 201×2+206×2
 	session.data.village.buildings.append({"buildingId": 7, "level": 0, "damagedUntilUtcSec": 0})
 	var no_mat: Dictionary = session.craft(4, 1000000)
@@ -114,7 +127,7 @@ func test_dispatch_chain_efficiency_and_stamina() -> void:
 	# 体力 <20 不可派遣 → 绑定空（效率 1）；升矿场开第二矿位
 	session.data.village.petConditions[0].staminaMilli = 15000
 	session.data.village.buildings[0].level = 1
-	var r2: Dictionary = session.assign_mine(2, 1000001, [1])
+	var r2: Dictionary = session.assign_mine(1, 1000001, [1])
 	assert_bool(bool(r2.ok)).is_true()
 	assert_float(float(r2.efficiency)).is_equal(1.0)
 	# 离线 1h：派遣宠扣体力（恢复 50000 后 50000-10000=40000），未派遣宠休息（20000+15000=35000）

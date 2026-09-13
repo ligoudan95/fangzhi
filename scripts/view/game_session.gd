@@ -89,7 +89,8 @@ func _village_config_capped() -> Dictionary:
 
 func new_game(now_utc: int, root_seed: int, slot: String = "auto") -> bool:
 	data = GameStateFactory.create_new(now_utc, root_seed)
-	var res: Dictionary = _save.save_slot(slot, data)
+	# force：新游戏语义为覆盖旧档（采认文件 generation，防遗留档死锁）
+	var res: Dictionary = _save.save_slot(slot, data, true)
 	return bool(res.ok)
 
 
@@ -145,8 +146,9 @@ func on_stage_cleared(stage_id: int) -> Array:
 	return _apply_quest(1, stage_id, 1)
 
 
-func on_pet_captured(pet_id: int) -> Array:
-	# 灵宠个体化（docs/04 §2/§3）：捕捉时 roll 资质+性格，存种子不存值
+func on_pet_captured(pet_id: int, enemy_level: int = 1) -> Array:
+	# 灵宠个体化（docs/04 §2/§3）：捕捉时 roll 资质+性格，存种子不存值；
+	# 入场等级跟随敌方野性等级（capture_level）
 	var pet_row := {}
 	for p in _tables.get("PetBase", []):
 		if int(p.petId) == pet_id:
@@ -164,7 +166,7 @@ func on_pet_captured(pet_id: int) -> Array:
 				{
 					"instanceId": cap_count,
 					"petId": pet_id,
-					"level": 1,
+					"level": maxi(1, enemy_level),
 					"exp": 0,
 					"realmBreaks": 0,
 					"aptitudeSeed": apt_seed,
@@ -426,6 +428,37 @@ func _draw_equip_stream() -> float:
 	return 0.5  # 无流兜底（存档异常时不应到达）
 
 
+# ---------- 玩家境界（docs/02 §2.2 / 01 §144 修为驱动） ----------
+
+
+## 境界信息（UI 展示）：当前显示名/下一层消耗/可否推进
+func realm_info() -> Dictionary:
+	var realm_id := int(data.player.get("realmId", 1))
+	var realm_layer := int(data.player.get("realmLayer", 1))
+	var cost: int = RealmProgress.layer_cost(realm_id, realm_layer, _g())
+	return {
+		"display": RealmProgress.realm_display(realm_id, realm_layer, _g()),
+		"nextCost": cost,
+		"canAdvance": int(data.player.cultivation) >= cost,
+		"realmId": realm_id,
+		"realmLayer": realm_layer,
+	}
+
+
+## 境界推进：扣修为 → 层+1（满 9 进境归一）；十境之巅封顶
+func advance_realm() -> Dictionary:
+	var realm_id := int(data.player.get("realmId", 1))
+	var realm_layer := int(data.player.get("realmLayer", 1))
+	var res: Dictionary = RealmProgress.try_advance(
+		int(data.player.cultivation), realm_id, realm_layer, _g()
+	)
+	if bool(res.ok):
+		data.player.cultivation = int(data.player.cultivation) - int(res.cost)
+		data.player.realmId = int(res.realmId)
+		data.player.realmLayer = int(res.realmLayer)
+	return res
+
+
 ## 图鉴幸运值（docs/08 §3）：掉落 roll 的 luckValue 输入
 func codex_luck() -> int:
 	return CodexSystem.luck_bonus(data.pets, _all_pet_ids())
@@ -473,9 +506,11 @@ func build_battle_team() -> Array:
 				)
 			)
 			break
-	if team.is_empty():
-		for t in FTUE_TEAM_IDS:
-			team.append(BattleSetup.make_pet_input(cfg, int(t[0]), int(t[1]), int(t[2]), int(t[3])))
+	# 借兽补位（docs/16 序章借兽契约延伸）：阵伍不足 3 只时演示兽自动补空位，
+	# 保证捕捉后首战不是单宠送死；集齐三兽后完全由玩家灵宠出战
+	for i in range(3 - team.size()):
+		var t0: Array = FTUE_TEAM_IDS[i]
+		team.append(BattleSetup.make_pet_input(cfg, int(t0[0]), int(t0[1]), int(t0[2]), int(t0[3])))
 	return team
 
 
@@ -565,6 +600,8 @@ func upgrade_building(building_id: int) -> Dictionary:
 			break
 	if row.is_empty():
 		return {"ok": false, "error": "未知建筑 %d" % building_id}
+	if not RealmProgress.can_unlock(String(row.unlockRealm), int(data.player.get("realmId", 1))):
+		return {"ok": false, "error": "境界不足（需 %s）" % String(row.unlockRealm)}
 	var level := BuildingEffects.level_of(data.village.buildings, building_id)
 	if level >= BuildingEffects.upgrade_cap(data.village.buildings, building_id, _building_rows()):
 		return {"ok": false, "error": "已达上限（议事堂约束）"}
@@ -598,6 +635,10 @@ func assign_mine(mine_id: int, now_utc: int, pet_instance_ids: Array = []) -> Di
 			break
 	if mine_row.is_empty():
 		return {"ok": false, "error": "未知矿层 %d" % mine_id}
+	if not RealmProgress.can_unlock(
+		String(mine_row.unlockRealm), int(data.player.get("realmId", 1))
+	):
+		return {"ok": false, "error": "境界不足（需 %s）" % String(mine_row.unlockRealm)}
 	var slots := BuildingEffects.mine_slots(data.village.buildings, _building_rows())
 	if data.village.mineJobs.size() >= slots:
 		return {"ok": false, "error": "矿位已满（%d）——升级矿场" % slots}
@@ -650,6 +691,8 @@ func craft(recipe_id: int, now_utc: int) -> Dictionary:
 			break
 	if row.is_empty():
 		return {"ok": false, "error": "未知配方 %d" % recipe_id}
+	if not RealmProgress.can_unlock(String(row.unlockRealm), int(data.player.get("realmId", 1))):
+		return {"ok": false, "error": "境界不足（需 %s）" % String(row.unlockRealm)}
 	var station_building := (
 		BuildingEffects.FORGE if int(row.station) == 1 else BuildingEffects.ALCHEMY
 	)

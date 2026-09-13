@@ -69,3 +69,7 @@ TIDE_WAVE_INTERVAL_SEC,43200,兽潮波次间隔（12h）
 TIDE_MAX_MISSED_WAVES,4,离线错过兽潮补结算上限
 PET_FEED_XIU_BASE,50,灵宠喂养升 1 级修为基础消耗（临时数值待策划校准，docs/01 §144 修为驱动养成）
 PET_FEED_XIU_STEP,10,灵宠喂养每级递增修为（临时数值待策划校准）
+REALM_BASE_XIU,500,境界层修为基础（02 §2.2：Base(n)=500×2.6^(n-1)）
+REALM_BASE_GROWTH,2.6,境界间基础增长
+REALM_LAYER_GROWTH,1.35,层间增长（1.35^(k-1)）
+REALM_LAYERS,9,每境层数（淬体重数 1~9 推广）

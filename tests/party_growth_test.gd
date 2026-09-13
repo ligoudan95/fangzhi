@@ -82,18 +82,19 @@ func test_feed_and_breakthrough_flow() -> void:
 
 func test_battle_team_uses_party_with_real_aptitudes() -> void:
 	var session := _make_session()
-	# 空阵伍 → 序章演示三兽回退
+	# 空阵伍 → 序章演示三兽整队
 	var demo: Array = session.build_battle_team()
 	assert_int(demo.size()).is_equal(3)
 	assert_int(int(demo[0].petId)).is_equal(1001)
 	assert_int(int(demo[0].level)).is_equal(12)
 	assert_int(int(demo[0].apts.atk)).is_equal(900)
-	# 捕捉入队 → 队伍 = 玩家灵宠，资质为 roll 值（非均质 900）
-	session.on_pet_captured(1003)
+	# 捕捉入队（敌 lv4 野性等级）→ 玩家宠在前 + 借兽补位至 3
+	session.on_pet_captured(1003, 4)
 	var team: Array = session.build_battle_team()
-	assert_int(team.size()).is_equal(1)
+	assert_int(team.size()).is_equal(3)
 	assert_int(int(team[0].petId)).is_equal(1003)
-	assert_int(int(team[0].level)).is_equal(1)
+	assert_int(int(team[0].level)).is_equal(4)
+	assert_int(int(team[1].petId)).is_equal(1001)
 	var uniform := (
 		int(team[0].apts.atk) == int(team[0].apts.def)
 		and int(team[0].apts.def) == int(team[0].apts.hp)
@@ -104,6 +105,12 @@ func test_battle_team_uses_party_with_real_aptitudes() -> void:
 	# 同种子重展开一致（确定性）
 	var team2: Array = session.build_battle_team()
 	assert_int(int(team2[0].apts.atk)).is_equal(int(team[0].apts.atk))
+	# 集齐三兽 → 无补位，全玩家宠
+	session.on_pet_captured(1001, 4)
+	session.on_pet_captured(1005, 4)
+	var team3: Array = session.build_battle_team()
+	assert_int(team3.size()).is_equal(3)
+	assert_int(int(team3[2].petId)).is_equal(1005)
 
 
 func test_nature_modifiers_change_stats() -> void:
