@@ -101,7 +101,7 @@ func _run() -> int:
 					print("    TS: %s" % e)
 					break
 	if failures == 0:
-		print("PARITY OK: %d 个种子 × 5 场景 逐行一致" % seeds.size())
+		print("PARITY OK: %d 个种子 × 9 场景 逐行一致" % seeds.size())
 		return 0
 	print("PARITY: %d/%d 个种子失败" % [failures, seeds.size()])
 	return 1
@@ -287,4 +287,151 @@ func _build_lines(tables: Dictionary, cfg: Dictionary, g: Dictionary, seed: int)
 		90000,
 		[{"itemId": 101, "amount": 120}]
 	)
+
+	# 场景6：建筑效果（Phase B）——与 tools/parity/gen_parity.ts 同字面量
+	var build_rows: Array = [
+		{"buildingId": 1, "maxLevel": 10, "effectKind": 1, "effectBase": 0, "effectStep": 1},
+		{"buildingId": 4, "maxLevel": 6, "effectKind": 1, "effectBase": 3, "effectStep": 1},
+		{"buildingId": 5, "maxLevel": 6, "effectKind": 1, "effectBase": 1, "effectStep": 1},
+		{"buildingId": 7, "maxLevel": 5, "effectKind": 3, "effectBase": 1, "effectStep": 0.5},
+		{"buildingId": 9, "maxLevel": 6, "effectKind": 2, "effectBase": 1, "effectStep": 0.5},
+		{"buildingId": 12, "maxLevel": 5, "effectKind": 1, "effectBase": 12, "effectStep": 12},
+	]
+	var build_state: Array = [
+		{"buildingId": 4, "level": 2},
+		{"buildingId": 5, "level": 1},
+		{"buildingId": 7, "level": 3},
+		{"buildingId": 9, "level": 2},
+		{"buildingId": 12, "level": 1},
+		{"buildingId": 1, "level": 2},
+	]
+	var build_g := {"OFFLINE_CAP_BASE_SEC": 43200, "OFFLINE_CAP_TOTEM_SEC": 86400}
+	(
+		lines
+		. append(
+			(
+				"[build] farmSlots=%d mineSlots=%d forgeCap=%d warehouseMult=%.2f totemCap=%d hallGate=%d"
+				% [
+					BuildingEffects.field_slots(build_state, build_rows),
+					BuildingEffects.mine_slots(build_state, build_rows),
+					BuildingEffects.queue_cap(build_state, BuildingEffects.FORGE, build_rows),
+					BuildingEffects.storage_cap_mult(build_state, build_rows),
+					BuildingEffects.offline_cap_sec(build_state, build_rows, build_g),
+					BuildingEffects.upgrade_cap(build_state, BuildingEffects.FARM, build_rows),
+				]
+			)
+		)
+	)
+
+	# 场景7：配方生产（Phase B）
+	var recipe_map := {
+		4:
+		{
+			"recipeId": 4,
+			"station": 1,
+			"inputs": "201:2;206:2",
+			"outputItemId": 206,
+			"outputCount": 1,
+			"durationMin": 30
+		},
+	}
+	var recipe_of := func(recipe_id: int) -> Dictionary: return recipe_map.get(recipe_id, {})
+	var craft_category := {201: 1, 206: 5}
+	var craft_rules := {1: 200, 5: 50}
+	var inv0: Array = [{"itemId": 201, "amount": 5}, {"itemId": 206, "amount": 2}]
+	var inv_str := func(inv: Array) -> String:
+		if inv.is_empty():
+			return "-"
+		var parts: Array[String] = []
+		for s0 in inv:
+			parts.append("%d:%d" % [int(s0.itemId), int(s0.amount)])
+		return ";".join(parts)
+	var s7: Dictionary = RecipeCraft.start_craft([], 4, "201:2;206:2", 1000, inv0, 2)
+	lines.append(
+		(
+			"[recipe_start] error=%s jobs=%d inv=%s"
+			% [String(s7.error), s7.jobs.size(), inv_str.call(s7.inventory)]
+		)
+	)
+	var half7: Dictionary = RecipeCraft.settle_crafts(
+		s7.jobs, 1000 + 29 * 60, s7.inventory, recipe_of, craft_category, craft_rules, 1.0
+	)
+	lines.append(
+		"[recipe_settle_half] jobs=%d outputs=%d" % [half7.nextJobs.size(), half7.outputs.size()]
+	)
+	var done7: Dictionary = RecipeCraft.settle_crafts(
+		s7.jobs, 1000 + 30 * 60, s7.inventory, recipe_of, craft_category, craft_rules, 2.0
+	)
+	lines.append(
+		(
+			"[recipe_settle_done] jobs=%d outputs=%d inv=%s"
+			% [done7.nextJobs.size(), done7.outputs.size(), inv_str.call(done7.inventory)]
+		)
+	)
+
+	# 场景8：矿场结算（Phase B）
+	var mine_config := {
+		"mines":
+		{
+			1: {"mineId": 1, "ironRate": 10, "crystalRate": 2, "refinedRate": 1, "spiritRate": 1},
+			2: {"mineId": 2, "ironRate": 6, "crystalRate": 3, "refinedRate": 0, "spiritRate": 2},
+		},
+		"seasons":
+		{0: {"mineMult": 1.2}, 1: {"mineMult": 1.0}, 2: {"mineMult": 1.3}, 3: {"mineMult": 0.5}},
+		"categoryOf": {201: 1, 202: 1, 203: 1},
+		"storageRules": {1: 200},
+		"g": {"SEASON_EPOCH_UTC_SEC": 0, "OFFLINE_CAP_BASE_SEC": 43200},
+	}
+	var mine_jobs: Array = [
+		{"slotId": 1, "mineId": 1, "startedAtUtcSec": 430000, "assignedPetInstanceIds": []},
+		{"slotId": 2, "mineId": 2, "startedAtUtcSec": 430000, "assignedPetInstanceIds": []},
+	]
+	var r8: Dictionary = MineProduction.settle_mines(
+		mine_jobs,
+		430000,
+		444400,
+		{"beastShell": 5, "spiritCrystal": 50, "totemEmblem": 0},
+		[],
+		mine_config
+	)
+	(
+		lines
+		. append(
+			(
+				"[mine] cursor=430000 now=444400 outputs=%d wallet=spirit:%d,beast:%d,totem:%d inv=%s"
+				% [
+					r8.outputs.size(),
+					int(r8.wallet.spiritCrystal),
+					int(r8.wallet.beastShell),
+					int(r8.wallet.totemEmblem),
+					inv_str.call(r8.inventory),
+				]
+			)
+		)
+	)
+	for o8 in r8.outputs:
+		lines.append("[mine_out] item=%d amount=%d" % [int(o8.itemId), int(o8.amount)])
+
+	# 场景9：兽潮错过补结算（Phase B）
+	var team9: Array = [
+		BattleSetup.make_pet_input(cfg, 1001, 12, 900, 1),
+		BattleSetup.make_pet_input(cfg, 1002, 12, 900, 1),
+		BattleSetup.make_pet_input(cfg, 1005, 12, 950, 1),
+	]
+	var t9: Dictionary = BeastTide.settle_missed(
+		864000000, 864172800, 28800, seed, team9, tables, cfg, g
+	)
+	lines.append(
+		(
+			"[beast] cursor=864000000 now=864172800 tz=28800 waves=%d settled=%d"
+			% [t9.waves.size(), int(t9.settledCount)]
+		)
+	)
+	for w9 in t9.waves:
+		lines.append(
+			(
+				"[beast_wave] utc=%d outcome=%s rounds=%d"
+				% [int(w9.waveUtcSec), String(w9.outcome), int(w9.rounds)]
+			)
+		)
 	return lines

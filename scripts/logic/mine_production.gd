@@ -63,7 +63,8 @@ static func settle_mines(
 				)
 				if String(res.error) != "":
 					return
-				inv = res.stacks
+				# GDScript lambda 按值捕获：必须原地替换（assign），重绑定 inv 只改副本会丢产出
+				inv.assign(res.stacks)
 				outputs.append({"itemId": item_id, "amount": amount})
 			produce_fn.call("%d:iron" % slot_id, 201, int(mine.ironRate), false)
 			produce_fn.call("%d:crystal" % slot_id, 202, int(mine.crystalRate), false)

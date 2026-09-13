@@ -51,6 +51,7 @@ static func create_new(now_utc: int, root_seed: int) -> Dictionary:
 				"cultivationUtcSec": now_utc,
 				"patrolUtcSec": now_utc,
 				"villageProductionUtcSec": now_utc,
+				"craftUtcSec": now_utc,
 				"beastTideUtcSec": now_utc,
 			},
 			"pendingReports": {},

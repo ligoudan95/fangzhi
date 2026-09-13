@@ -7,16 +7,17 @@ export interface ItemStack { itemId: number; amount: number }
 
 export interface AddResult { added: number; stored: number; cap: number; overflow: number }
 
-/** 软容量入库：可超上限保留；不修改输入，返回新数组（按 itemId 升序） */
+/** 软容量入库：可超上限保留；capMult 为仓库建筑倍率（默认 1.0）；不修改输入，返回新数组（按 itemId 升序） */
 export function addItem(
   stacks: ItemStack[], itemId: number, amount: number,
-  categoryOf: Map<number, number>, rules: Map<number, number>,
+  categoryOf: Map<number, number>, rules: Map<number, number>, capMult = 1.0,
 ): { stacks: ItemStack[]; result: AddResult } {
   if (amount < 0) throw new Error('amount 不能为负');
   const category = categoryOf.get(itemId);
   if (category === undefined) throw new Error(`物品 ${itemId} 无仓储分类`);
-  const cap = rules.get(category);
-  if (cap === undefined) throw new Error(`仓储分类 ${category} 无容量规则`);
+  const capBase = rules.get(category);
+  if (capBase === undefined) throw new Error(`仓储分类 ${category} 无容量规则`);
+  const cap = Math.floor(capBase * capMult);
   const next = stacks.map(s => ({ ...s }));
   const existing = next.find(s => s.itemId === itemId);
   const before = existing ? existing.amount : 0;

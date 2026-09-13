@@ -13,7 +13,7 @@
   "station": 2,
   "inputs": "102:2",
   "outputItemId": 201,
-  "outputCount": 0,
+  "outputCount": 1,
   "durationMin": 20,
   "unlockRealm": "凝血"
  },
@@ -40,7 +40,7 @@
   "station": 2,
   "inputs": "103:2",
   "outputItemId": 202,
-  "outputCount": 0,
+  "outputCount": 1,
   "durationMin": 20,
   "unlockRealm": "凝血"
  },

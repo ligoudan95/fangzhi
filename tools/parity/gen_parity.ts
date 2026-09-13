@@ -9,6 +9,10 @@ import { Battle } from '../../src/battle/engine.ts';
 import { loadConfig, loadEquipmentConfig, makePetInput, groupInputs } from '../../src/config/load.ts';
 import { emptyPityState, resolveIdentification, resolveSettlement, type PityState } from '../../src/equipment/drop.ts';
 import { settleCrops, type FieldState, type ItemStack as FarmStack, type VillageConfig } from '../../src/logic/villageProduction.ts';
+import { settleMines } from '../../src/logic/mineProduction.ts';
+import { settleMissed } from '../../src/logic/beastTide.ts';
+import { fieldSlots, mineSlots, queueCap, storageCapMult, offlineCapSec, upgradeCap, FARM, FORGE, type BuildingRow } from '../../src/logic/buildingEffects.ts';
+import { startCraft, settleCrafts } from '../../src/logic/recipeCraft.ts';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
@@ -150,7 +154,83 @@ for (const seed of seeds) {
     );
   }
 
+  // 场景6：建筑效果（Phase B）——效果值/田位/矿位/队列/仓库倍率/图腾上限/议事堂门
+  {
+    const rows: BuildingRow[] = [
+      { buildingId: 1, maxLevel: 10, effectKind: 1, effectBase: 0, effectStep: 1 },
+      { buildingId: 4, maxLevel: 6, effectKind: 1, effectBase: 3, effectStep: 1 },
+      { buildingId: 5, maxLevel: 6, effectKind: 1, effectBase: 1, effectStep: 1 },
+      { buildingId: 7, maxLevel: 5, effectKind: 3, effectBase: 1, effectStep: 0.5 },
+      { buildingId: 9, maxLevel: 6, effectKind: 2, effectBase: 1, effectStep: 0.5 },
+      { buildingId: 12, maxLevel: 5, effectKind: 1, effectBase: 12, effectStep: 12 },
+    ];
+    const b = [
+      { buildingId: 4, level: 2 }, { buildingId: 5, level: 1 }, { buildingId: 7, level: 3 },
+      { buildingId: 9, level: 2 }, { buildingId: 12, level: 1 }, { buildingId: 1, level: 2 },
+    ];
+    const bg = { OFFLINE_CAP_BASE_SEC: 43200, OFFLINE_CAP_TOTEM_SEC: 86400 };
+    lines.push(
+      `[build] farmSlots=${fieldSlots(b, rows)} mineSlots=${mineSlots(b, rows)}` +
+      ` forgeCap=${queueCap(b, FORGE, rows)} warehouseMult=${storageCapMult(b, rows).toFixed(2)}` +
+      ` totemCap=${offlineCapSec(b, rows, bg)} hallGate=${upgradeCap(b, FARM, rows)}`,
+    );
+  }
+
+  // 场景7：配方生产（Phase B）——入队扣料/未到期/到时产出/仓库倍率（与 parity_runner.gd 同字面量）
+  {
+    const recipes = new Map([
+      [4, { recipeId: 4, station: 1, inputs: '201:2;206:2', outputItemId: 206, outputCount: 1, durationMin: 30 }],
+    ]);
+    const recipeOf = (id: number) => recipes.get(id);
+    const categoryOf = new Map([[201, 1], [206, 5]]);
+    const rules = new Map([[1, 200], [5, 50]]);
+    const inv0 = [{ itemId: 201, amount: 5 }, { itemId: 206, amount: 2 }];
+    const invStr = (inv: { itemId: number; amount: number }[]) =>
+      inv.length ? inv.map(s => `${s.itemId}:${s.amount}`).join(';') : '-';
+    const s = startCraft([], 4, '201:2;206:2', 1000, inv0, 2);
+    lines.push(`[recipe_start] error=${s.error} jobs=${s.jobs.length} inv=${invStr(s.inventory)}`);
+    const half = settleCrafts(s.jobs, 1000 + 29 * 60, s.inventory, recipeOf, categoryOf, rules, 1.0);
+    lines.push(`[recipe_settle_half] jobs=${half.nextJobs.length} outputs=${half.outputs.length}`);
+    const done = settleCrafts(s.jobs, 1000 + 30 * 60, s.inventory, recipeOf, categoryOf, rules, 2.0);
+    lines.push(`[recipe_settle_done] jobs=${done.nextJobs.length} outputs=${done.outputs.length} inv=${invStr(done.inventory)}`);
+  }
+
+  // 场景8：矿场结算（Phase B）——切片×季节系数/分数结转/灵晶入钱包（与 parity_runner.gd 同字面量）
+  {
+    const mconfig = {
+      mines: new Map([
+        [1, { mineId: 1, ironRate: 10, crystalRate: 2, refinedRate: 1, spiritRate: 1 }],
+        [2, { mineId: 2, ironRate: 6, crystalRate: 3, refinedRate: 0, spiritRate: 2 }],
+      ]),
+      seasons: new Map([[0, { mineMult: 1.2 }], [1, { mineMult: 1.0 }], [2, { mineMult: 1.3 }], [3, { mineMult: 0.5 }]]),
+      categoryOf: new Map([[201, 1], [202, 1], [203, 1]]),
+      storageRules: new Map([[1, 200]]),
+      g: { SEASON_EPOCH_UTC_SEC: 0, OFFLINE_CAP_BASE_SEC: 43200 },
+    };
+    const jobs = [
+      { slotId: 1, mineId: 1, startedAtUtcSec: 430000, assignedPetInstanceIds: [] },
+      { slotId: 2, mineId: 2, startedAtUtcSec: 430000, assignedPetInstanceIds: [] },
+    ];
+    const r = settleMines(jobs, 430000, 444400, { beastShell: 5, spiritCrystal: 50, totemEmblem: 0 }, [], mconfig);
+    lines.push(`[mine] cursor=430000 now=444400 outputs=${r.outputs.length}` +
+      ` wallet=spirit:${r.wallet.spiritCrystal},beast:${r.wallet.beastShell},totem:${r.wallet.totemEmblem}` +
+      ` inv=${r.inventory.length ? r.inventory.map(s => `${s.itemId}:${s.amount}`).join(';') : '-'}`);
+    for (const o of r.outputs) lines.push(`[mine_out] item=${o.itemId} amount=${o.amount}`);
+  }
+
+  // 场景9：兽潮错过补结算（Phase B）——波次枚举/确定性种子/逐波战斗（与 parity_runner.gd 同字面量）
+  {
+    const team = [
+      makePetInput(cfg, 1001, 12, 900, 1),
+      makePetInput(cfg, 1002, 12, 900, 1),
+      makePetInput(cfg, 1005, 12, 950, 1),
+    ];
+    const t = settleMissed(864000000, 864172800, 28800, seed, team, {}, cfg, g);
+    lines.push(`[beast] cursor=864000000 now=864172800 tz=28800 waves=${t.waves.length} settled=${t.settledCount}`);
+    for (const w of t.waves) lines.push(`[beast_wave] utc=${w.waveUtcSec} outcome=${w.outcome} rounds=${w.rounds}`);
+  }
+
   writeFileSync(join(OUT_DIR, `seed_${seed}.log`), lines.join('\n') + '\n');
 }
 
-console.log(`对拍期望日志已生成：${seeds.length} 个种子 × 5 场景 → out/parity/expected/`);
+console.log(`对拍期望日志已生成：${seeds.length} 个种子 × 9 场景 → out/parity/expected/`);

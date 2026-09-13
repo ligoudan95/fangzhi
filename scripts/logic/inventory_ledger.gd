@@ -5,9 +5,15 @@ class_name InventoryLedger
 extends RefCounted
 
 
-## 软容量入库：可超上限保留；返回 {stacks, added, stored, cap, overflow}（不修改输入）
+## 软容量入库：可超上限保留；cap_mult 为仓库建筑倍率（默认 1.0）；
+## 返回 {stacks, added, stored, cap, overflow}（不修改输入）
 static func add_item(
-	stacks: Array, item_id: int, amount: int, category_of: Dictionary, rules: Dictionary
+	stacks: Array,
+	item_id: int,
+	amount: int,
+	category_of: Dictionary,
+	rules: Dictionary,
+	cap_mult: float = 1.0
 ) -> Dictionary:
 	if amount < 0:
 		return {"error": "amount 不能为负"}
@@ -16,7 +22,7 @@ static func add_item(
 	var category := int(category_of[item_id])
 	if not rules.has(category):
 		return {"error": "仓储分类 %d 无容量规则" % category}
-	var cap := int(rules[category])
+	var cap := int(float(int(rules[category])) * cap_mult)
 	var next: Array = []
 	for s in stacks:
 		next.append({"itemId": int(s.itemId), "amount": int(s.amount)})
