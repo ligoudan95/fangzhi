@@ -65,7 +65,7 @@ uvx --from "gdtoolkit==4.*" gdlint scripts tests
 |---|---|---|
 | TS 数值基准 | `npm test`（15 项） | 战力锚点 ±15%、伤害管线、捕捉蒙特卡洛、确定性、冒烟——**改数值/公式必跑** |
 | GDScript 单测 | GdUnit4（`tests/`，`GdUnitCmdTool.gd` 入口） | TS 断言口径逐项平移；battle/logic 层必单测 |
-| 引擎对拍 | `npm run parity` + `tests/parity_runner.gd`（种子清单 `tools/parity/seeds.json`，100 种子 × 3 场景逐行 diff） | TS 与 GDScript 同种子跑，任何不一致 = 移植 bug；check_all 第 7 步强制 |
+| 引擎对拍 | `npm run parity` + `tests/parity_runner.gd`（种子清单 `tools/parity/seeds.json`，100 种子 × 9 场景逐行 diff） | TS 与 GDScript 同种子跑，任何不一致 = 移植 bug；check_all 第 7 步强制 |
 | 数值验收 | `npm run export` → `out/report.md` | 平衡报表 V-401 全过 |
 | View/UI | 人工试玩 | 竖屏 1080×1920、上下 80px SafeArea、异形屏、动态减弱与性能预算（docs/10 §12） |
 
@@ -93,9 +93,13 @@ out/             导出产物（gitignore）
 
 ## 当前状态（随进度更新）
 
-- **风险整改 M0-M6 第一阶段完成（2026-09-12）**：M0 口径治理 + 台账、M1 战斗缺陷修复、M2 导表/CI 门禁、M3 装备掉落闭环、M4 存档/时间底层、M5 产品档案 docs/16-24、M6 演出第一阶段（结构化事件 + 2×3 站位 + SafeArea + AAB + Audio 最小实装 + 设置页 docs/23）；当次 `check_all` 全绿（64 项 GdUnit / 35 项 TS / 100 种子 × 4 场景对拍含事件摘要）
+- **风险整改 M0-M6 第一阶段完成（2026-09-12）**：M0 口径治理 + 台账、M1 战斗缺陷修复、M2 导表/CI 门禁、M3 装备掉落闭环、M4 存档/时间底层、M5 产品档案 docs/16-24、M6 演出第一阶段（结构化事件 + 2×3 站位 + SafeArea + AAB + Audio 最小实装 + 设置页 docs/23）
+- **P1-P6 MVP 包完成（2026-09-13）**：灵宠个体化（资质/性格/突破）、村落场景+派遣、内容扩量（3 域 18 关/4 章 32 节点）、装备强化+套装、图鉴收集+幸运、经济模拟器；`check_all` 全绿
+- **Phase B 村落经营收口（2026-09-13，docs/26 §4 全项）**：建筑效果 effectKind 1-4 全消费（田位/矿位/生产队列/仓库倍率/图腾离线上限/议事堂门）+ 配方生产（锻造/药庐）+ 矿场开采 + 派遣体力心情离线恢复；修复 GD lambda 按值捕获致矿场产出丢失 bug；对拍扩至 **9 场景**（`[farm]/[mine]/[beast]/[recipe]/[build]`）；115 项 GdUnit / 87 项 TS
+- **config_types/fields.md 生成链验收关闭（2026-09-13）**：幂等零漂移 + CI 漂移阻断 + 加载/schema 测试全绿（R-P1-06）
+- **实机画面验证批次（2026-09-13）**：浮层互斥/页签与弹窗视觉规范（岩彩暖色+金边）/全局 9:16 窗口适配（window_fit，最大化转最大 9:16）/战斗站位居中修复/伤害数字错层；引擎截帧 + 视觉模型复核闭环（tools/dev/ui_flow_capture.gd 等探针）
 - **占位声明**：战斗立绘为元素色块占位，正式美术/音频资产为外部交付门禁（docs/14）
-- **剩余阻塞**：Phase B 实现（Building/Recipe/Mine/兽潮，表头已评审于 docs/26 §4）、真机竖屏验收（唯一剩余人工项）（README「下一步」；统一台账见 docs/14）。CI 五 job 已全绿（run 34686413389）+ 作物生产闭环（72 项 GdUnit / 43 项 TS / 100 种子 × 5 场景对拍）
+- **剩余阻塞**：真机竖屏验收（唯一剩余人工项，需推送后取新 CI run 的 APK artifact）；城防（effectKind 5）战斗消费待 docs/05 §9 数值细则
 - **D13-14 部分完成**：Android APK + AAB preset 与五个 CI job 已配置；`android-apk` 仍为 `continue-on-error`，真机竖屏、安全区和基础交互尚待人工验收
 - **美术表现 v0.2 已定稿（2026-09-12）**：静态岩彩贴图为主，不使用 Spine/骨骼动画；Tween + 少量拆件 + 受限序列帧/粒子，见 docs/10 §3~§12
 - 开发设施已从 feitu 移植（2026-09-08）：gdUnit4 + godot_ai(4.0.2) + 子代理管线 + CI + 检查脚本
