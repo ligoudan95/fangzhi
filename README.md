@@ -59,6 +59,7 @@ out/             导出产物（JSON 配置 / types.d.ts / report.md 平衡报�
 - [x] battle 基线移植 + 对拍设施 D6-10：mulberry32、伤害公式、基础 Buff/AI/捕捉及 100 种子 × 3 场景对拍脚本已入库；这是 TS 基准覆盖范围，不代表 `docs/03` 全量规则完成
 - [x] 最简演出 D11-12：`scenes/battle.tscn` 已接入 BattlePlayback 文本回放及 1x/2x/跳过/重播/关卡选择；不等同于正式视觉战斗
 - [x] D13-14 自动化配置部分：`export_presets.cfg` 已配置 Android arm64、`*.json` 进包、ETC2/ASTC 压缩；minSdk 跟随模板默认（26 覆盖需 Gradle 构建，暂未启用）；CI 已配置 ts/lint/test/parity 强制 job 和非阻断 `android-apk` job
+- [x] **养成→战力闭环（2026-09-13 四包）**：灵宠上阵/修为喂养/突破 + 装备穿戴/强化/套装入战斗（statMods+natureMods 通道）+ 离线开屏结算报告 + 派遣完整链（绑宠×效率×体力分流）；桌面性能探针 169.9fps ≥55fps 档 PASS（tools/dev/perf_probe.gd；真机为准）
 - [ ] **真机竖屏验证（D13-14 人工项）**：CI 五 job 已全绿、`fangzhi-debug-apk` artifact 已产出（run `34686413389`，30.8MB，**旧 head——需推送后取新 run 的 artifact**）——从 Actions 下载 artifact 装机，核对竖屏锁定、上下安全区、基础交互（含村落生产/锻造/矿场）、关卡切换和同种子重播；通过后移除 `android-apk.continue-on-error`
 
 统一风险、证据、Owner、验收与阻塞关系见 `docs/14-风险与完成度台账.md`。未在台账中满足验收条件的条目不得对外表述为“Phase 0 全部完成”“战斗全量完成”或“CI 全绿”。
