@@ -1,0 +1,74 @@
+[
+ {
+  "equipSetId": 1,
+  "name": "狼魂",
+  "element": 1,
+  "pieces": 3,
+  "bonus2Desc": "速度+12%",
+  "bonus2Stat": "spd",
+  "bonus2Pct": 0.12,
+  "bonus3Desc": "先手伤害+40%",
+  "bonus3Stat": "dmg_first",
+  "bonus3Pct": 0.4
+ },
+ {
+  "equipSetId": 2,
+  "name": "雷煞",
+  "element": 1,
+  "pieces": 3,
+  "bonus2Desc": "冷却−1",
+  "bonus2Stat": "cd_reduce",
+  "bonus2Pct": 1,
+  "bonus3Desc": "暴击+20%怒气",
+  "bonus3Stat": "rage_crit",
+  "bonus3Pct": 20
+ },
+ {
+  "equipSetId": 3,
+  "name": "赤炎",
+  "element": 4,
+  "pieces": 3,
+  "bonus2Desc": "火伤+15%",
+  "bonus2Stat": "dmg_fire",
+  "bonus2Pct": 0.15,
+  "bonus3Desc": "灼烧可暴击+引爆溅射50%",
+  "bonus3Stat": "detonate_splash",
+  "bonus3Pct": 0.5
+ },
+ {
+  "equipSetId": 4,
+  "name": "青木",
+  "element": 2,
+  "pieces": 3,
+  "bonus2Desc": "治疗+20%",
+  "bonus2Stat": "heal",
+  "bonus2Pct": 0.2,
+  "bonus3Desc": "受治疗时15%灵力护盾",
+  "bonus3Stat": "shield_heal",
+  "bonus3Pct": 0.15
+ },
+ {
+  "equipSetId": 5,
+  "name": "玄冰",
+  "element": 3,
+  "pieces": 3,
+  "bonus2Desc": "冰冻概率+15%",
+  "bonus2Stat": "freeze_chance",
+  "bonus2Pct": 0.15,
+  "bonus3Desc": "对冰冻/湿身伤害+50%",
+  "bonus3Stat": "dmg_frozen",
+  "bonus3Pct": 0.5
+ },
+ {
+  "equipSetId": 6,
+  "name": "厚土",
+  "element": 5,
+  "pieces": 3,
+  "bonus2Desc": "防御+20%",
+  "bonus2Stat": "def",
+  "bonus2Pct": 0.2,
+  "bonus3Desc": "受击怒气翻倍",
+  "bonus3Stat": "rage_double",
+  "bonus3Pct": 2
+ }
+]

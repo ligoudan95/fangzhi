@@ -126,6 +126,21 @@
 | unidentified | `bool` | `c` | 掉落时未鉴定 |
 | requiredGroups | `array<int>(2)` | `c` | 必选词条组（0=无；组配额待设计确认 Phase 0 不强制） |
 
+## EquipSet
+
+| 字段 | 类型 | 可见性 | 说明 |
+|---|---|---|---|
+| equipSetId | `int` | `c` | 主键 |
+| name | `string` | `c` | 套装名 |
+| element | `int` | `c` | 五行属性 |
+| pieces | `int` | `c` | 件数（武器+防具+饰品） |
+| bonus2Desc | `string` | `c` | 2件效果描述 |
+| bonus2Stat | `string` | `c` | 2件属性修正键 |
+| bonus2Pct | `float` | `c` | 2件修正比例 |
+| bonus3Desc | `string` | `c` | 3件效果描述 |
+| bonus3Stat | `string` | `c` | 3件属性修正键 |
+| bonus3Pct | `float` | `c` | 3件修正比例 |
+
 ## GlobalConst
 
 | 字段 | 类型 | 可见性 | 说明 |

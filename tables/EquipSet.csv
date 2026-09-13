@@ -1,0 +1,10 @@
+equipSetId,name,element,pieces,bonus2Desc,bonus2Stat,bonus2Pct,bonus3Desc,bonus3Stat,bonus3Pct
+int,string,int,int,string,string,float,string,string,float
+c,c,c,c,c,c,c,c,c,c
+主键,套装名,五行属性,件数（武器+防具+饰品）,2件效果描述,2件属性修正键,2件修正比例,3件效果描述,3件属性修正键,3件修正比例
+1,狼魂,1,3,速度+12%,spd,0.12,先手伤害+40%,dmg_first,0.40
+2,雷煞,1,3,冷却−1,cd_reduce,1,暴击+20%怒气,rage_crit,20
+3,赤炎,4,3,火伤+15%,dmg_fire,0.15,灼烧可暴击+引爆溅射50%,detonate_splash,0.50
+4,青木,2,3,治疗+20%,heal,0.20,受治疗时15%灵力护盾,shield_heal,0.15
+5,玄冰,3,3,冰冻概率+15%,freeze_chance,0.15,对冰冻/湿身伤害+50%,dmg_frozen,0.50
+6,厚土,5,3,防御+20%,def,0.20,受击怒气翻倍,rage_double,2

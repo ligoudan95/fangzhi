@@ -24,7 +24,8 @@ const PRIMARY_KEYS: Dictionary = {
 	"SeasonWeather": ["seasonId"],
 	"Mine": ["mineId"],
 	"Building": ["buildingId"],
-	"Recipe": ["recipeId"]
+	"Recipe": ["recipeId"],
+	"EquipSet": ["equipSetId"]
 }
 const FIELD_TYPES: Dictionary = {
 	"AffixPool": {
@@ -123,6 +124,18 @@ const FIELD_TYPES: Dictionary = {
 		"rareForLuck": "bool",
 		"unidentified": "bool",
 		"requiredGroups": "array<int>(2)"
+	},
+	"EquipSet": {
+		"equipSetId": "int",
+		"name": "string",
+		"element": "int",
+		"pieces": "int",
+		"bonus2Desc": "string",
+		"bonus2Stat": "string",
+		"bonus2Pct": "float",
+		"bonus3Desc": "string",
+		"bonus3Stat": "string",
+		"bonus3Pct": "float"
 	},
 	"GlobalConst": {
 		"key": "string",
@@ -238,6 +251,7 @@ const ARRAY_LENGTHS: Dictionary = {
 	"EquipQuality": {
 		"requiredGroups": 2
 	},
+	"EquipSet": {},
 	"GlobalConst": {},
 	"ItemBase": {},
 	"MainQuest": {},
