@@ -8,7 +8,7 @@
 					"--link-mode",
 					"copy",
 					"--from",
-					"godot-ai==4.0.2",
+					"godot-ai==4.1.0",
 					"godot-ai",
 					"--port",
 					"8000",
