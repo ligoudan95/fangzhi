@@ -110,6 +110,29 @@ func _show_title() -> void:
 	battle_overlay.visible = false
 
 
+## ESC 轻量返回栈（docs/17 §1 导航）：关掉最上层弹窗；战斗中先跳过演出
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		if battle_overlay.visible and battle_overlay.get_child_count() > 0:
+			battle_overlay.get_child(0)._on_skip_pressed()
+			return
+		_close_top_panel()
+
+
+func _close_top_panel() -> void:
+	for panel in [
+		village_overlay, offline_report_panel, realm_panel, equip_panel, pet_panel, farm_panel
+	]:
+		if panel.visible:
+			panel.visible = false
+			return
+
+
+## 自动保存（docs/15 §4 auto 槽）：关键事实落档后静默触发
+func _autosave() -> void:
+	session.save_game()
+
+
 ## 浮层互斥（docs/17 §2 弹窗优先级）：同一时刻至多一个面板打开
 func _close_panels() -> void:
 	equip_panel.visible = false
@@ -196,6 +219,7 @@ func _show_offline_report(elapsed_sec: int, lines: Array[String]) -> void:
 
 func _on_offline_claim_pressed() -> void:
 	offline_report_panel.visible = false
+	_autosave()
 
 
 # ---------- 任务与战斗 ----------
@@ -258,6 +282,7 @@ func _on_battle_finished(result: Dictionary, stage: Dictionary, capture: bool) -
 		)
 		session.on_party_changed(session.party().size())
 	_refresh_home()
+	_autosave()
 	_close_timer = get_tree().create_timer(1.2)
 	_close_timer.timeout.connect(func() -> void: battle_overlay.visible = false)
 
@@ -357,12 +382,14 @@ func _on_pet_feed_pressed(instance_id: int) -> void:
 	session.feed_pet(instance_id)
 	_refresh_pet_list()
 	_refresh_home()
+	_autosave()
 
 
 func _on_pet_break_pressed(instance_id: int) -> void:
 	session.breakthrough_pet(instance_id)
 	_refresh_pet_list()
 	_refresh_home()
+	_autosave()
 
 
 func _on_pet_close_pressed() -> void:

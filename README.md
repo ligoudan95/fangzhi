@@ -61,6 +61,7 @@ out/             导出产物（JSON 配置 / types.d.ts / report.md 平衡报�
 - [x] D13-14 自动化配置部分：`export_presets.cfg` 已配置 Android arm64、`*.json` 进包、ETC2/ASTC 压缩；minSdk 跟随模板默认（26 覆盖需 Gradle 构建，暂未启用）；CI 已配置 ts/lint/test/parity 强制 job 和非阻断 `android-apk` job
 - [x] **养成→战力闭环（2026-09-13 四包）**：灵宠上阵/修为喂养/突破 + 装备穿戴/强化/套装入战斗（statMods+natureMods 通道）+ 离线开屏结算报告 + 派遣完整链（绑宠×效率×体力分流）；桌面性能探针 169.9fps ≥55fps 档 PASS（tools/dev/perf_probe.gd；真机为准）
 - [x] **进度骨干（2026-09-13 包A）**：玩家境界推进（修为公式+境界面板）+ unlockRealm 门禁（建筑/配方/矿层）+ 借兽补位修捕捉后卡死 + 捕捉野性等级 + 存档 generation 死锁修复（force 新游戏覆盖）+ FTUE 全程自动回归（test_ftue_progression_no_dead_end）
+- [x] **战斗套装机制 + 体验（2026-09-13 包B/C）**：EquipSet 特殊效果 10 键接入战斗引擎（对拍 10 场景）；自动保存 + ESC 返回栈
 - [ ] **真机竖屏验证（D13-14 人工项）**：CI 五 job 已全绿、`fangzhi-debug-apk` artifact 已产出（run `34686413389`，30.8MB，**旧 head——需推送后取新 run 的 artifact**）——从 Actions 下载 artifact 装机，核对竖屏锁定、上下安全区、基础交互（含村落生产/锻造/矿场）、关卡切换和同种子重播；通过后移除 `android-apk.continue-on-error`
 
 统一风险、证据、Owner、验收与阻塞关系见 `docs/14-风险与完成度台账.md`。未在台账中满足验收条件的条目不得对外表述为“Phase 0 全部完成”“战斗全量完成”或“CI 全绿”。
