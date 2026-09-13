@@ -113,6 +113,8 @@ export class Battle {
     };
     for (const [k, v] of Object.entries(p.natureMods ?? {})) off[k] = (off[k] ?? 0) + v;
     const stats = computeStats(pet.template, off, p.level, p.apts, p.realmBreaks, this.g);
+    // 装备平面加成（docs/08 §4/§5）：主属性/平面词条 ×强化倍率；缺省不改变原对拍行为
+    for (const [k, v] of Object.entries(p.statMods ?? {})) stats[k] += v;
     return {
       uid: this.uidSeq++, side, petId: p.petId, name: pet.name, element: pet.element, level: p.level,
       stats, hp: stats.hp, shield: 0, rage: 0,

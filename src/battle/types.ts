@@ -35,6 +35,7 @@ export interface PetInput {
   strategy?: string;            // 敌方AI标签
   isEnemy?: boolean;
   natureMods?: Record<string, number>;  // 性格修正（并入种族偏移，docs/04 §3）
+  statMods?: Record<string, number>;    // 装备平面加成（docs/08 §4/§5，compute 后叠加）
 }
 
 export interface BuffInst { def: BuffRow; stacks: number; remain: number }

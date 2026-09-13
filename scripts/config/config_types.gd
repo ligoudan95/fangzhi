@@ -115,7 +115,8 @@ const FIELD_TYPES: Dictionary = {
 		"slot": "int",
 		"mainStat": "string",
 		"baseValue": "float",
-		"weight": "float"
+		"weight": "float",
+		"setId": "ref<EquipSet>"
 	},
 	"EquipQuality": {
 		"qualityId": "int",

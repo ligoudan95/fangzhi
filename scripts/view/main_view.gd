@@ -9,6 +9,9 @@ const BATTLE_SCENE: PackedScene = preload("res://scenes/battle.tscn")
 ## 窗口适配器（docs/10 §12）：入口场景全局接管
 const WINDOW_FIT: GDScript = preload("res://scripts/view/window_fit.gd")
 
+## 装备部位显示名（EquipBase.slot）
+const SLOT_NAMES := {1: "武器", 2: "防具", 3: "饰品"}
+
 var session: Node
 var _tables: Dictionary = {}
 var _cfg: Dictionary = {}
@@ -348,26 +351,101 @@ func _refresh_equip_list() -> void:
 		equip_list.add_child(empty)
 		return
 	for item in items:
-		var row := HBoxContainer.new()
+		var view: Dictionary = session.equipment_view(String(item.instanceId))
+		var card := VBoxContainer.new()
+		card.add_theme_constant_override("separation", 6)
 		var info := Label.new()
-		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info.text = (
-			"%s Lv%d %s"
-			% [String(item.instanceId), int(item.level), "已鉴定" if bool(item.identified) else "未鉴定"]
-		)
-		row.add_child(info)
-		if not bool(item.identified):
-			var btn := Button.new()
-			btn.text = "鉴定"
-			btn.pressed.connect(_on_identify_pressed.bind(String(item.instanceId)))
-			row.add_child(btn)
-		equip_list.add_child(row)
+		info.add_theme_font_size_override("font_size", 27)
+		if not bool(view.identified):
+			info.text = "未鉴定装备"
+		else:
+			var worn := ""
+			if int(view.wornBy) > 0:
+				var pet_name := ""
+				for pet in session.data.pets:
+					if int(pet.instanceId) == int(view.wornBy):
+						pet_name = String(session.get_pet_detail(int(view.wornBy)).name)
+						break
+				worn = "  【%s 穿戴】" % pet_name
+			var cost: Dictionary = EquipEnhance.enhance_cost(int(view.enhanceLevel))
+			var head := (
+				"%s %s+%d  主%s+%d 词条%d%s"
+				% [
+					String(SLOT_NAMES.get(int(view.slot), "?")),
+					"品%d" % int(view.quality),
+					int(view.enhanceLevel),
+					String(view.mainStat),
+					int(view.mainValue),
+					int(view.affixCount),
+					worn,
+				]
+			)
+			var fee := "强化费用：铁锭" + str(int(cost.metalIngot)) + " 灵晶" + str(int(cost.spiritCrystal))
+			var nl := String.chr(10)
+			info.text = head + nl + fee
+		card.add_child(info)
+		var actions := HBoxContainer.new()
+		actions.add_theme_constant_override("separation", 12)
+		if not bool(view.identified):
+			var id_btn := Button.new()
+			id_btn.text = "鉴定"
+			id_btn.add_theme_font_size_override("font_size", 26)
+			id_btn.pressed.connect(_on_identify_pressed.bind(String(item.instanceId)))
+			actions.add_child(id_btn)
+		else:
+			var enh_btn := Button.new()
+			enh_btn.text = "强化 +%d" % (int(view.enhanceLevel) + 1)
+			enh_btn.add_theme_font_size_override("font_size", 26)
+			enh_btn.pressed.connect(_on_enhance_pressed.bind(String(item.instanceId)))
+			actions.add_child(enh_btn)
+			if int(view.wornBy) > 0:
+				var off_btn := Button.new()
+				off_btn.text = "卸下"
+				off_btn.add_theme_font_size_override("font_size", 26)
+				off_btn.pressed.connect(_on_takeoff_pressed.bind(String(item.instanceId)))
+				actions.add_child(off_btn)
+			else:
+				var wear_btn := Button.new()
+				wear_btn.text = "穿戴"
+				wear_btn.add_theme_font_size_override("font_size", 26)
+				wear_btn.pressed.connect(_on_wear_pressed.bind(String(item.instanceId)))
+				actions.add_child(wear_btn)
+		card.add_child(actions)
+		equip_list.add_child(card)
 
 
 func _on_identify_pressed(instance_id: String) -> void:
 	session.identify_equipment(instance_id)
 	_refresh_equip_list()
 	_refresh_home()
+
+
+## 强化（docs/08 §7.1）：锻造炉上限/材料/成功率档位在会话内判定
+func _on_enhance_pressed(instance_id: String) -> void:
+	var res: Dictionary = session.enhance_equipment(instance_id)
+	if not bool(res.ok):
+		_refresh_equip_list()
+		return
+	_refresh_equip_list()
+	_refresh_home()
+
+
+## 穿戴：默认穿给阵队首位灵宠（阵队空则第一只）
+func _on_wear_pressed(instance_id: String) -> void:
+	var target := 0
+	var party: Array = session.party()
+	if not party.is_empty():
+		target = int(party[0])
+	elif not session.data.pets.is_empty():
+		target = int(session.data.pets[0].instanceId)
+	if target > 0:
+		session.wear_equipment(instance_id, target)
+	_refresh_equip_list()
+
+
+func _on_takeoff_pressed(instance_id: String) -> void:
+	session.takeoff_equipment(instance_id)
+	_refresh_equip_list()
 
 
 func _on_equip_close_pressed() -> void:

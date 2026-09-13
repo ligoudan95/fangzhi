@@ -87,6 +87,8 @@ static func make_pet_input(
 		input["strategy"] = opts["strategy"]
 	if opts.has("natureMods"):
 		input["natureMods"] = opts["natureMods"]
+	if opts.has("statMods"):
+		input["statMods"] = opts["statMods"]
 	return input
 
 

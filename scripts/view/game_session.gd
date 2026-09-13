@@ -169,6 +169,7 @@ func on_pet_captured(pet_id: int) -> Array:
 					"realmBreaks": 0,
 					"aptitudeSeed": apt_seed,
 					"natureSeed": nature_seed,
+					"equips": {},
 				}
 			)
 		)
@@ -292,6 +293,151 @@ func breakthrough_pet(instance_id: int) -> Dictionary:
 	return {"ok": false, "reason": "实例不存在 %d" % instance_id}
 
 
+## 穿戴：需已鉴定；同部位自动替换（旧件卸下）；返回 {ok, error}
+func wear_equipment(equip_instance_id: String, pet_instance_id: int) -> Dictionary:
+	var item: Dictionary = {}
+	for it in data.equipment.items:
+		if String(it.instanceId) == equip_instance_id:
+			item = it
+			break
+	if item.is_empty():
+		return {"ok": false, "error": "装备实例不存在"}
+	if not bool(item.identified):
+		return {"ok": false, "error": "未鉴定装备不可穿戴"}
+	var view: Dictionary = EquipDropResolver.resolve_identification(item, _equip_config, _g())
+	if String(view.error) != "":
+		return {"ok": false, "error": String(view.error)}
+	var slot := int(view.slot)
+	var pet: Dictionary = {}
+	for p0 in data.pets:
+		if int(p0.instanceId) == pet_instance_id:
+			pet = p0
+			break
+	if pet.is_empty():
+		return {"ok": false, "error": "灵宠实例不存在"}
+	# 从其他灵宠身上卸下同实例
+	for p1 in data.pets:
+		var eq1: Dictionary = p1.get("equips", {})
+		for k in eq1.keys():
+			if String(eq1[k]) == equip_instance_id:
+				eq1.erase(k)
+	if not pet.has("equips"):
+		pet["equips"] = {}
+	pet.equips[slot] = equip_instance_id
+	return {"ok": true, "error": "", "slot": slot}
+
+
+## 装备展示视图：鉴定信息 + 强化等级 + 穿戴者（UI 渲染用；未鉴定返回占位）
+func equipment_view(equip_instance_id: String) -> Dictionary:
+	for item in data.equipment.items:
+		if String(item.instanceId) != equip_instance_id:
+			continue
+		var out: Dictionary = {
+			"instanceId": equip_instance_id,
+			"equipId": int(item.equipId),
+			"identified": bool(item.identified),
+			"enhanceLevel": int(item.get("enhanceLevel", 0)),
+			"wornBy": 0,
+			"error": "",
+		}
+		if not bool(item.identified):
+			return out
+		var view: Dictionary = EquipDropResolver.resolve_identification(item, _equip_config, _g())
+		if String(view.error) != "":
+			out.error = String(view.error)
+			return out
+		out.slot = int(view.slot)
+		out.mainStat = String(view.mainStat)
+		out.mainValue = roundi(float(view.mainValueMicro) / 1000000.0)
+		out.quality = int(view.quality)
+		out.affixCount = view.affixes.size()
+		for p0 in data.pets:
+			var eq: Dictionary = p0.get("equips", {})
+			for k in eq.keys():
+				if String(eq[k]) == equip_instance_id:
+					out.wornBy = int(p0.instanceId)
+		return out
+	return {"error": "装备实例不存在"}
+
+
+## 卸下
+func takeoff_equipment(equip_instance_id: String) -> Dictionary:
+	for p0 in data.pets:
+		var eq: Dictionary = p0.get("equips", {})
+		for k in eq.keys():
+			if String(eq[k]) == equip_instance_id:
+				eq.erase(k)
+				return {"ok": true, "error": ""}
+	return {"ok": false, "error": "未被穿戴"}
+
+
+## 强化（docs/08 §7.1）：消耗 铁锭(item204)+灵晶；成功率按档；上限=锻造炉等级×3；
+## 失败仅耗材料不掉级（失败惩罚 docs 未定，标注待策划）；roll 按装备种子确定性派生
+func enhance_equipment(equip_instance_id: String) -> Dictionary:
+	var item: Dictionary = {}
+	for it in data.equipment.items:
+		if String(it.instanceId) == equip_instance_id:
+			item = it
+			break
+	if item.is_empty():
+		return {"ok": false, "error": "装备实例不存在"}
+	var level := int(item.get("enhanceLevel", 0))
+	if level >= 15:
+		return {"ok": false, "error": "已达强化上限 +15"}
+	var forge_level := BuildingEffects.level_of(data.village.buildings, BuildingEffects.FORGE)
+	var cap := EquipEnhance.max_enhance_level(forge_level)
+	if level >= cap:
+		return {"ok": false, "error": "锻造炉等级不足（上限 +%d）" % cap}
+	var cost: Dictionary = EquipEnhance.enhance_cost(level)
+	var ingot := int(cost.metalIngot)
+	var crystal := int(cost.spiritCrystal)
+	if int(data.wallet.spiritCrystal) < crystal:
+		return {"ok": false, "error": "灵晶不足（需 %d）" % crystal}
+	var have_ingot := 0
+	for st in data.village.storage:
+		if int(st.itemId) == 204:
+			have_ingot = int(st.amount)
+			break
+	if have_ingot < ingot:
+		return {"ok": false, "error": "铁锭不足（需 %d）" % ingot}
+	# 扣材料（失败也耗材料；成功率档位 docs/08 §7.1）
+	data.wallet.spiritCrystal = int(data.wallet.spiritCrystal) - crystal
+	for st in data.village.storage:
+		if int(st.itemId) == 204:
+			st.amount = int(st.amount) - ingot
+			break
+	var roll := _draw_equip_stream()
+	var success := roll < EquipEnhance.enhance_success_rate(level)
+	if success:
+		item.enhanceLevel = level + 1
+	return {"ok": true, "error": "", "success": success, "level": int(item.enhanceLevel)}
+
+
+## 从持久化掉落流（streamId=2，docs/15 §3.2 五流之一）抽 [0,1)：推进并回写 state/drawCount，
+## 确保强化重试每次是新抽样且离线回放一致（BattleRng 状态推进 = +M mod 2^32）
+func _draw_equip_stream() -> float:
+	for st in data.rng.streams:
+		if int(st.streamId) == 2:
+			var rng := BattleRng.new(int(st.state))
+			var v := rng.next()
+			st.state = (int(st.state) + 0x6D2B79F5) & 0xFFFFFFFF
+			st.drawCount = int(st.drawCount) + 1
+			return v
+	return 0.5  # 无流兜底（存档异常时不应到达）
+
+
+## 图鉴幸运值（docs/08 §3）：掉落 roll 的 luckValue 输入
+func codex_luck() -> int:
+	return CodexSystem.luck_bonus(data.pets, _all_pet_ids())
+
+
+func _all_pet_ids() -> Array:
+	var ids: Array = []
+	for row in _tables.get("PetBase", []):
+		ids.append(int(row.petId))
+	return ids
+
+
 ## 出战队伍：阵伍灵宠 → 真实资质+性格+等级+突破；空阵伍回退序章演示三兽（docs/16）
 func build_battle_team() -> Array:
 	var team: Array = []
@@ -309,6 +455,13 @@ func build_battle_team() -> Array:
 				continue
 			var apts: Dictionary = PetIndividuality.roll_aptitudes(pet_row, int(pet.aptitudeSeed))
 			var nature := PetIndividuality.roll_nature(pet_row, int(pet.natureSeed))
+			# 装备修正（docs/08）：平面加成走 statMods，比例修正并入 natureMods 偏移通道
+			var emods: Dictionary = EquipStats.equipped_mods(
+				pet, data.equipment.items, _equip_config, _tables.get("EquipSet", []), _g()
+			)
+			var mods: Dictionary = PetIndividuality.nature_modifiers(nature).duplicate()
+			for stat_key in emods.ratio:
+				mods[stat_key] = float(mods.get(stat_key, 0.0)) + float(emods.ratio[stat_key])
 			team.append(
 				BattleSetup.make_pet_input(
 					cfg,
@@ -316,7 +469,7 @@ func build_battle_team() -> Array:
 					int(pet.level),
 					900,
 					int(pet.realmBreaks),
-					{"apts": apts, "natureMods": PetIndividuality.nature_modifiers(nature)}
+					{"apts": apts, "natureMods": mods, "statMods": emods.flat}
 				)
 			)
 			break
@@ -342,7 +495,7 @@ func settle_stage_drop(stage: Dictionary, root_seed: int) -> Dictionary:
 		"dropId": int(stage.dropId),
 		"dropCount": int(stage.dropCount),
 		"monsterLevel": 12,
-		"luckValue": 0.0,
+		"luckValue": float(CodexSystem.luck_bonus(data.pets, _all_pet_ids())),
 		"pityState":
 		{
 			"schemaVersion": 1,
@@ -366,6 +519,7 @@ func settle_stage_drop(stage: Dictionary, root_seed: int) -> Dictionary:
 					"level": int(item.level),
 					"rollSeed": int(item.rollSeed),
 					"identified": bool(item.identified),
+					"enhanceLevel": 0,
 				}
 			)
 		)

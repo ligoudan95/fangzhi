@@ -114,6 +114,7 @@
 | mainStat | `string` | `c` | 主属性键 |
 | baseValue | `float` | `c` | 部位主属性基准（08 §4：基准×(1+等级×EQUIP_MAIN_LV_SCALE)） |
 | weight | `float` | `c` | 模板抽取权重 |
+| setId | `ref<EquipSet>` | `c` | 所属套装（docs/08 §7；101/201/301→狼魂 102/202/302→雷煞） |
 
 ## EquipQuality
 

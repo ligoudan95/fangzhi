@@ -16,6 +16,7 @@ import {
 
 export interface EquipBaseRow {
   equipId: number; slot: number; mainStat: string; baseValue: number; weight: number;
+  setId: number;  // 所属套装（docs/08 §7）
 }
 
 export interface AffixRow {

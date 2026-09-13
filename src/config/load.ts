@@ -35,7 +35,7 @@ export function loadConfig(): BattleConfig {
  */
 export function makePetInput(cfg: BattleConfig, petId: number, level: number, apt: number, realmBreaks: number, opts?: {
   captureable?: boolean; strategy?: string; apts?: { atk: number; def: number; hp: number; spd: number; mag: number };
-  natureMods?: Record<string, number>;
+  natureMods?: Record<string, number>; statMods?: Record<string, number>;
 }): PetInput {
   const apts = opts?.apts ?? { atk: apt, def: apt, hp: apt, spd: apt, mag: apt };
   const skillIds = (cfg.skillPool.get(petId) ?? [])
@@ -43,7 +43,8 @@ export function makePetInput(cfg: BattleConfig, petId: number, level: number, ap
     .map(entry => entry.skillId);
   return {
     petId, level, apts, realmBreaks, skillIds,
-    captureable: opts?.captureable, strategy: opts?.strategy, natureMods: opts?.natureMods,
+    captureable: opts?.captureable, strategy: opts?.strategy,
+    natureMods: opts?.natureMods, statMods: opts?.statMods,
   };
 }
 
