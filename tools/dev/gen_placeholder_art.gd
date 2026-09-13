@@ -4,13 +4,27 @@
 extends SceneTree
 
 const ELEMENT_COLORS := {
-	1: Color("#E8B33C"), 2: Color("#6FBF4F"), 3: Color("#4F86E8"),
-	4: Color("#E8543C"), 5: Color("#C79A4B"), 6: Color("#7A4FD4"), 7: Color("#F5E7B8"),
+	1: Color("#E8B33C"),
+	2: Color("#6FBF4F"),
+	3: Color("#4F86E8"),
+	4: Color("#E8543C"),
+	5: Color("#C79A4B"),
+	6: Color("#7A4FD4"),
+	7: Color("#F5E7B8"),
 }
 const PETS := [
-	[1001, 5, "rock"], [1002, 2, "flower"], [1003, 2, "vine"], [1004, 2, "leaf"],
-	[1005, 4, "feather"], [1006, 4, "lava"], [1007, 1, "spark"], [1008, 1, "moon"],
-	[1009, 3, "ice"], [1010, 3, "snow"], [1011, 5, "shell"], [1012, 5, "ear"],
+	[1001, 5, "rock"],
+	[1002, 2, "flower"],
+	[1003, 2, "vine"],
+	[1004, 2, "leaf"],
+	[1005, 4, "feather"],
+	[1006, 4, "lava"],
+	[1007, 1, "spark"],
+	[1008, 1, "moon"],
+	[1009, 3, "ice"],
+	[1010, 3, "snow"],
+	[1011, 5, "shell"],
+	[1012, 5, "ear"],
 ]
 
 
@@ -107,7 +121,13 @@ func _fill_round_rect(img: Image, rect: Rect2i, c: Color, radius: int) -> void:
 func _fill_ellipse_row(img: Image, rect: Rect2i, c: Color) -> void:
 	var cx := rect.get_center().x
 	for y in range(rect.position.y, rect.end.y):
-		var half := int(float(rect.size.x) / 2.0 * sqrt(1.0 - pow(float(y - rect.position.y) / rect.size.y - 0.5, 2.0) * 4.0))
+		var half := int(
+			(
+				float(rect.size.x)
+				/ 2.0
+				* sqrt(1.0 - pow(float(y - rect.position.y) / rect.size.y - 0.5, 2.0) * 4.0)
+			)
+		)
 		for x in range(cx - half, cx + half):
 			img.set_pixel(x, y, c)
 
@@ -151,7 +171,11 @@ func _draw_sigil(img: Image, kind: int, at: Vector2i, c: Color) -> void:
 			_fill_rect(img, Rect2i(at.x + 2, at.y + 2, 4, 4), c)
 		"shell":
 			for i in 6:
-				_fill_rect(img, Rect2i(at.x - 9 + i * 3, at.y - 6 + absi(3 - i) * 2, 3, 12 - absi(3 - i) * 4), c)
+				_fill_rect(
+					img,
+					Rect2i(at.x - 9 + i * 3, at.y - 6 + absi(3 - i) * 2, 3, 12 - absi(3 - i) * 4),
+					c
+				)
 		"ear":
 			_fill_rect(img, Rect2i(at.x - 10, at.y - 10, 6, 6), c)
 			_fill_rect(img, Rect2i(at.x + 4, at.y - 10, 6, 6), c)
@@ -162,7 +186,11 @@ func _draw_sigil(img: Image, kind: int, at: Vector2i, c: Color) -> void:
 
 func _draw_ridge(img: Image, base_y: int, amp: int, c: Color) -> void:
 	for x in 1080:
-		var h := base_y + int(sin(float(x) / 130.0) * float(amp)) + int(sin(float(x) / 47.0) * float(amp / 3))
+		var h := (
+			base_y
+			+ int(sin(float(x) / 130.0) * float(amp))
+			+ int(sin(float(x) / 47.0) * float(amp / 3))
+		)
 		for y in range(h, 1920):
 			img.set_pixel(x, y, c)
 

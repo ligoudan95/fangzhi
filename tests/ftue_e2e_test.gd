@@ -77,7 +77,7 @@ func test_vertical_slice_first_hour() -> void:
 	assert_bool(bool(qs.completed.get("7", false))).is_true()
 
 	# ⑥ 播种时节（goalType 5 需收获后才触发）+ 上阵三宠（goalType 6）
-	assert_bool(session.plant_crop(1, 1, now + 60)).is_true()
+	assert_bool(bool(session.plant_crop(1, 1, now + 60).ok)).is_true()
 	done = session.on_party_changed(3)
 	qs = session.data.player.quests
 	assert_bool(bool(qs.completed.get("9", false))).is_true()  # 三兽成阵

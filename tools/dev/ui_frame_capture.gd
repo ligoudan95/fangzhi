@@ -26,10 +26,16 @@ func _capture() -> void:
 	var log_text: RichTextLabel = _scene.get_node("Margin/VBox/LogScroll/LogText")
 	var log_scroll: ScrollContainer = _scene.get_node("Margin/VBox/LogScroll")
 	print(
-		"UI-DEBUG: log_chars=", log_text.text.length(),
-		" log_rect=", log_text.global_position, log_text.size,
-		" scroll_rect=", log_scroll.global_position, log_scroll.size,
-		" vbox_rect=", _scene.get_node("Margin/VBox").size
+		"UI-DEBUG: log_chars=",
+		log_text.text.length(),
+		" log_rect=",
+		log_text.global_position,
+		log_text.size,
+		" scroll_rect=",
+		log_scroll.global_position,
+		log_scroll.size,
+		" vbox_rect=",
+		_scene.get_node("Margin/VBox").size
 	)
 	var img := root.get_texture().get_image()
 	var out := "res://.godot/ui_frame_%dx%d.png" % [img.get_width(), img.get_height()]

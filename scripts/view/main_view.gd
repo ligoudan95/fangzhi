@@ -385,7 +385,10 @@ func _refresh_farm() -> void:
 func _on_farm_plant_pressed() -> void:
 	var now := int(Time.get_unix_time_from_system())
 	var slot: int = session.data.village.fields.size() + 1
-	session.plant_crop(slot, 1, now)
+	var res: Dictionary = session.plant_crop(slot, 1, now)
+	if not bool(res.ok):
+		farm_info.text = String(res.error)
+		return
 	_refresh_farm()
 
 
