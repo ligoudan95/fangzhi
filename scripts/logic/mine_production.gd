@@ -44,6 +44,8 @@ static func settle_mines(
 				continue
 			var mine: Dictionary = config.mines[int(job.mineId)]
 			var slot_id := int(job.slotId)
+			# 派遣效率（docs/05 §4）：绑宠作业由会话注入快照倍率；默认 1（对拍兼容）
+			var eff := float(job.get("efficiency", 1.0))
 			var produce_fn := func(key: String, item_id: int, rate: int, to_wallet: bool) -> void:
 				if rate <= 0:
 					return
@@ -66,10 +68,18 @@ static func settle_mines(
 				# GDScript lambda 按值捕获：必须原地替换（assign），重绑定 inv 只改副本会丢产出
 				inv.assign(res.stacks)
 				outputs.append({"itemId": item_id, "amount": amount})
-			produce_fn.call("%d:iron" % slot_id, 201, int(mine.ironRate), false)
-			produce_fn.call("%d:crystal" % slot_id, 202, int(mine.crystalRate), false)
-			produce_fn.call("%d:refined" % slot_id, 203, int(mine.refinedRate), false)
-			produce_fn.call("%d:spirit" % slot_id, -1, int(mine.spiritRate), true)
+			produce_fn.call(
+				"%d:iron" % slot_id, 201, int(roundf(float(mine.ironRate) * eff)), false
+			)
+			produce_fn.call(
+				"%d:crystal" % slot_id, 202, int(roundf(float(mine.crystalRate) * eff)), false
+			)
+			produce_fn.call(
+				"%d:refined" % slot_id, 203, int(roundf(float(mine.refinedRate) * eff)), false
+			)
+			produce_fn.call(
+				"%d:spirit" % slot_id, -1, int(roundf(float(mine.spiritRate) * eff)), true
+			)
 	return {
 		"nextJobs": jobs.duplicate(true),
 		"nextCursor": now,

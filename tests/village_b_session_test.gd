@@ -99,6 +99,32 @@ func test_craft_flow_and_offline_settle() -> void:
 	assert_int(found_206).is_equal(2)
 
 
+func test_dispatch_chain_efficiency_and_stamina() -> void:
+	var session := _make_session()
+	session.on_pet_captured(1003)
+	session.on_pet_captured(1001)
+	session.data.village.buildings.append({"buildingId": 5, "level": 0, "damagedUntilUtcSec": 0})
+	# 宠1 体力 50（50%×0.7 + 心情满 0.3 = 0.65）；宠2 体力 20 供休息观察
+	session.data.village.petConditions[0].staminaMilli = 50000
+	session.data.village.petConditions[1].staminaMilli = 20000
+	var r: Dictionary = session.assign_mine(1, 1000000, [1])
+	assert_bool(bool(r.ok)).is_true()
+	assert_float(float(r.efficiency)).is_equal_approx(0.65, 0.001)
+	assert_int(session.data.village.mineJobs[0].assignedPetInstanceIds.size()).is_equal(1)
+	# 体力 <20 不可派遣 → 绑定空（效率 1）；升矿场开第二矿位
+	session.data.village.petConditions[0].staminaMilli = 15000
+	session.data.village.buildings[0].level = 1
+	var r2: Dictionary = session.assign_mine(2, 1000001, [1])
+	assert_bool(bool(r2.ok)).is_true()
+	assert_float(float(r2.efficiency)).is_equal(1.0)
+	# 离线 1h：派遣宠扣体力（恢复 50000 后 50000-10000=40000），未派遣宠休息（20000+15000=35000）
+	session.data.village.petConditions[0].staminaMilli = 50000
+	session.settle_offline(1000000 + 3600)
+	assert_int(int(session.data.village.petConditions[0].staminaMilli)).is_equal(40000)
+	assert_int(int(session.data.village.petConditions[1].staminaMilli)).is_equal(35000)
+	assert_bool(session.data.village.mineJobs.size() >= 1).is_true()
+
+
 func test_village_panel_renders_recipes() -> void:
 	var session := _make_session()
 	session.data.village.buildings.append({"buildingId": 7, "level": 0, "damagedUntilUtcSec": 0})

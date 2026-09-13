@@ -589,8 +589,8 @@ func upgrade_building(building_id: int) -> Dictionary:
 	return {"ok": true, "error": "", "level": level + 1, "cost": cost}
 
 
-## 矿场开采（docs/05 §6）：同时矿层数 = 矿场建筑效果（kind 1）
-func assign_mine(mine_id: int, now_utc: int) -> Dictionary:
+## 矿场开采（docs/05 §6/§4）：矿位数 = 矿场建筑效果；pet_instance_ids 绑宠派遣（效率乘算）
+func assign_mine(mine_id: int, now_utc: int, pet_instance_ids: Array = []) -> Dictionary:
 	var mine_row := {}
 	for m in _tables.get("Mine", []):
 		if int(m.mineId) == mine_id:
@@ -604,15 +604,41 @@ func assign_mine(mine_id: int, now_utc: int) -> Dictionary:
 	var next_slot := 1
 	for j in data.village.mineJobs:
 		next_slot = maxi(next_slot, int(j.slotId) + 1)
-	data.village.mineJobs.append(
-		{
-			"slotId": next_slot,
-			"mineId": mine_id,
-			"startedAtUtcSec": now_utc,
-			"assignedPetInstanceIds": []
-		}
+	# 派遣绑宠（docs/05 §4）：体力 ≥20 才可派遣；绑宠作业产量按派遣效率乘算
+	var g0: Dictionary = _g()
+	var assigned: Array = []
+	for pid in pet_instance_ids:
+		var cond := _condition_of(int(pid))
+		if PetDispatch.can_dispatch(cond, g0):
+			assigned.append(int(pid))
+	var eff := 1.0
+	if not assigned.is_empty():
+		var sum := 0.0
+		for pid in assigned:
+			sum += PetDispatch.dispatch_efficiency(_condition_of(int(pid)), 0.0, g0)
+		eff = sum / float(assigned.size())
+	(
+		data
+		. village
+		. mineJobs
+		. append(
+			{
+				"slotId": next_slot,
+				"mineId": mine_id,
+				"startedAtUtcSec": now_utc,
+				"assignedPetInstanceIds": assigned,
+				"efficiency": eff,
+			}
+		)
 	)
-	return {"ok": true, "error": "", "slotId": next_slot}
+	return {"ok": true, "error": "", "slotId": next_slot, "efficiency": eff}
+
+
+func _condition_of(pet_instance_id: int) -> Dictionary:
+	for c in data.village.petConditions:
+		if int(c.petInstanceId) == pet_instance_id:
+			return c
+	return {"petInstanceId": pet_instance_id, "staminaMilli": 100000, "moodMilli": 100000}
 
 
 ## 锻造/药庐生产（docs/05 §7）：station 1=锻造炉 2=药庐；队列容量按对应建筑（kind 3）
@@ -663,9 +689,20 @@ func settle_offline(now_utc: int) -> Dictionary:
 	for o in res.outputs:
 		_apply_quest(5, int(o.itemId), 1)
 	report["crops"] = res
-	# ② 矿场（docs/26 §4.3）
+	# ② 矿场（docs/26 §4.3 + docs/05 §4）：绑宠作业按当前体力/心情刷新效率快照（窗口内恒定）
+	var mine_jobs: Array = []
+	for j in data.village.mineJobs:
+		var j2: Dictionary = j.duplicate()
+		var ids: Array = j2.get("assignedPetInstanceIds", [])
+		if not ids.is_empty():
+			var g1: Dictionary = _g()
+			var sum := 0.0
+			for pid0 in ids:
+				sum += PetDispatch.dispatch_efficiency(_condition_of(int(pid0)), 0.0, g1)
+			j2["efficiency"] = sum / float(ids.size())
+		mine_jobs.append(j2)
 	var mine_res: Dictionary = MineProduction.settle_mines(
-		data.village.mineJobs, cursor, now_utc, data.wallet, data.village.storage, cfg
+		mine_jobs, cursor, now_utc, data.wallet, data.village.storage, cfg
 	)
 	data.wallet = mine_res.wallet
 	data.village.storage = mine_res.inventory
@@ -702,16 +739,25 @@ func settle_offline(now_utc: int) -> Dictionary:
 	data.village.storage = craft_res.inventory
 	data.settlement.cursors["craftUtcSec"] = now_utc
 	report["crafts"] = craft_res
-	# ⑤ 兽栏休息（docs/05 §2 kind 4）：窗口小时内按兽栏等级恢复体力/心情
+	# ⑤ 派遣体力消耗（docs/05 §4）+ 兽栏休息（仅未派遣，docs/05 §2 kind 4）
 	var barn_level := BuildingEffects.level_of(data.village.buildings, BuildingEffects.BARN)
-	var rest_hours := clampf(
+	var window_hours := clampf(
 		float(now_utc - cursor) / 3600.0, 0.0, float(_offline_cap_sec()) / 3600.0
 	)
+	var dispatched := {}
+	for j in data.village.mineJobs:
+		for pid1 in j.get("assignedPetInstanceIds", []):
+			dispatched[int(pid1)] = true
+	var rested := 0
 	for i in range(data.village.petConditions.size()):
-		data.village.petConditions[i] = PetDispatch.settle_rest(
-			data.village.petConditions[i], rest_hours, barn_level, _village_config.g
-		)
-	report["rest"] = {"pets": data.village.petConditions.size(), "hours": rest_hours}
+		var cond: Dictionary = data.village.petConditions[i]
+		if dispatched.has(int(cond.petInstanceId)):
+			cond = PetDispatch.settle_dispatch(cond, window_hours, _village_config.g)
+		else:
+			cond = PetDispatch.settle_rest(cond, window_hours, barn_level, _village_config.g)
+			rested += 1
+		data.village.petConditions[i] = cond
+	report["rest"] = {"pets": rested, "hours": window_hours}
 	data.meta.updatedAtUtcSec = now_utc
 	data.meta.lastObservedUtcSec = now_utc
 	_store_report_summary(now_utc, report)

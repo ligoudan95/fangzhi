@@ -210,6 +210,7 @@ for (const seed of seeds) {
     const jobs = [
       { slotId: 1, mineId: 1, startedAtUtcSec: 430000, assignedPetInstanceIds: [] },
       { slotId: 2, mineId: 2, startedAtUtcSec: 430000, assignedPetInstanceIds: [] },
+      { slotId: 3, mineId: 1, startedAtUtcSec: 430000, assignedPetInstanceIds: [1], efficiency: 0.5 },
     ];
     const r = settleMines(jobs, 430000, 444400, { beastShell: 5, spiritCrystal: 50, totemEmblem: 0 }, [], mconfig);
     lines.push(`[mine] cursor=430000 now=444400 outputs=${r.outputs.length}` +

@@ -131,8 +131,18 @@ func _on_mine_pressed() -> void:
 		return
 	var now := int(Time.get_unix_time_from_system())
 	var next_mine := _next_mine_id()
-	var res: Dictionary = _session.assign_mine(next_mine, now)
-	info_level.text = (("开采矿层 %d" % int(res.slotId)) if bool(res.ok) else String(res.error))
+	# 派遣第一只体力充足的灵宠（docs/05 §4）；无可用宠则裸采（效率 1）
+	var pets: Array = []
+	for c in _session.data.village.petConditions:
+		if PetDispatch.can_dispatch(c, {}):
+			pets.append(int(c.petInstanceId))
+			break
+	var res: Dictionary = _session.assign_mine(next_mine, now, pets)
+	if bool(res.ok):
+		var eff := float(res.get("efficiency", 1.0))
+		info_level.text = "开采矿层 %d（效率 %.0f%%）" % [int(res.slotId), eff * 100.0]
+	else:
+		info_level.text = String(res.error)
 	_render_actions(_selected_id)
 
 

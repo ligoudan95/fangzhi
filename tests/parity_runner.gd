@@ -385,6 +385,13 @@ func _build_lines(tables: Dictionary, cfg: Dictionary, g: Dictionary, seed: int)
 	var mine_jobs: Array = [
 		{"slotId": 1, "mineId": 1, "startedAtUtcSec": 430000, "assignedPetInstanceIds": []},
 		{"slotId": 2, "mineId": 2, "startedAtUtcSec": 430000, "assignedPetInstanceIds": []},
+		{
+			"slotId": 3,
+			"mineId": 1,
+			"startedAtUtcSec": 430000,
+			"assignedPetInstanceIds": [1],
+			"efficiency": 0.5
+		},
 	]
 	var r8: Dictionary = MineProduction.settle_mines(
 		mine_jobs,

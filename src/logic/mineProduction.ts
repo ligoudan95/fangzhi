@@ -40,6 +40,8 @@ export function settleMines(
     for (const job of jobs) {
       const mine = config.mines.get(job.mineId);
       if (!mine) continue;
+      // 派遣效率（docs/05 §4）：绑宠作业由会话注入快照倍率；默认 1（对拍兼容）
+      const eff = (job as { efficiency?: number }).efficiency ?? 1;
       const produce = (key: string, itemId: number, rate: number, toWallet: boolean) => {
         if (rate <= 0) return;
         const exact = (pending.get(key) ?? 0) + rate * mult * hours;
@@ -56,10 +58,10 @@ export function settleMines(
         inv = res.stacks;
         outputs.push({ itemId, amount });
       };
-      produce(`${job.slotId}:iron`, 201, mine.ironRate, false);
-      produce(`${job.slotId}:crystal`, 202, mine.crystalRate, false);
-      produce(`${job.slotId}:refined`, 203, mine.refinedRate, false);
-      produce(`${job.slotId}:spirit`, -1, mine.spiritRate, true);
+      produce(`${job.slotId}:iron`, 201, Math.round(mine.ironRate * eff), false);
+      produce(`${job.slotId}:crystal`, 202, Math.round(mine.crystalRate * eff), false);
+      produce(`${job.slotId}:refined`, 203, Math.round(mine.refinedRate * eff), false);
+      produce(`${job.slotId}:spirit`, -1, Math.round(mine.spiritRate * eff), true);
     }
   }
   return { nextCursor: now, wallet: wal, inventory: inv, outputs };
