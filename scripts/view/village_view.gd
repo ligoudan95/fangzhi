@@ -23,7 +23,7 @@ var _session: Node
 var _selected_id := 0
 var _building_buttons: Dictionary = {}
 
-@onready var building_grid: GridContainer = $BuildingGrid
+@onready var building_grid: GridContainer = $BuildingArea/BuildingGrid
 @onready var info_panel: PanelContainer = $InfoPanel
 @onready var info_title: Label = $InfoPanel/VBox/InfoTitle
 @onready var info_level: Label = $InfoPanel/VBox/InfoLevel

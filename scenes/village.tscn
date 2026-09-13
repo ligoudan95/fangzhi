@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/view/village_view.gd" id="1_village"]
+[ext_resource type="Texture2D" path="res://art/scenes/bg_far.png" id="2_bgfar"]
 
 [node name="VillageView" type="Control"]
 layout_mode = 3
@@ -18,6 +19,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+texture = ExtResource("2_bgfar")
 stretch_mode = 6
 
 [node name="Title" type="Label" parent="."]

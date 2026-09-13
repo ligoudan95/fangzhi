@@ -30,8 +30,8 @@ var _close_timer: SceneTreeTimer
 @onready var equip_list: VBoxContainer = $EquipPanel/VBox/EquipScroll/EquipList
 @onready var equip_close: Button = $EquipPanel/VBox/EquipClose
 @onready var pet_panel: Control = $PetPanel
-@onready var pet_list: VBoxContainer = $PetPanel/PetScroll/PetList
-@onready var pet_close: Button = $PetPanel/PetClose
+@onready var pet_list: VBoxContainer = $PetPanel/VBox/PetScroll/PetList
+@onready var pet_close: Button = $PetPanel/VBox/PetClose
 @onready var farm_panel: Control = $FarmPanel
 @onready var farm_info: Label = $FarmPanel/VBox/FarmInfo
 @onready var farm_plant: Button = $FarmPanel/VBox/FarmPlant
@@ -55,9 +55,16 @@ func _ready() -> void:
 func _show_title() -> void:
 	title_panel.visible = true
 	home_panel.visible = false
-	equip_panel.visible = false
-	farm_panel.visible = false
+	_close_panels()
 	battle_overlay.visible = false
+
+
+## 浮层互斥（docs/17 §2 弹窗优先级）：同一时刻至多一个面板打开
+func _close_panels() -> void:
+	equip_panel.visible = false
+	pet_panel.visible = false
+	farm_panel.visible = false
+	village_overlay.visible = false
 
 
 func _enter_home() -> void:
@@ -123,6 +130,7 @@ func _on_story_pressed() -> void:
 
 ## 出战：按当前任务决定关卡与捕捉模式；胜利→关卡进度+掉宝；captured→捕捉进度
 func _on_battle_pressed() -> void:
+	_close_panels()
 	var quests: Array = _tables.get("MainQuest", [])
 	var active: Dictionary = QuestTracker.active_quest(session.data.player.quests, quests)
 	var stage_id := 1
@@ -196,6 +204,7 @@ func _latest_unlocked_stage() -> int:
 
 ## 灵宠面板（docs/04 §2/§3）：资质五维+性格+突破阶段展示
 func _on_pet_pressed() -> void:
+	_close_panels()
 	_refresh_pet_list()
 	pet_panel.visible = true
 
@@ -242,6 +251,7 @@ func _on_pet_close_pressed() -> void:
 
 
 func _on_equip_pressed() -> void:
+	_close_panels()
 	_refresh_equip_list()
 	equip_panel.visible = true
 
@@ -287,6 +297,7 @@ func _on_equip_close_pressed() -> void:
 
 ## 村落场景（docs/05 §2）：建筑网格 + 点击升级
 func _on_village_pressed() -> void:
+	_close_panels()
 	for child in village_overlay.get_children():
 		village_overlay.remove_child(child)
 		child.free()
@@ -306,6 +317,7 @@ func _on_village_pressed() -> void:
 
 
 func _on_farm_pressed() -> void:
+	_close_panels()
 	_refresh_farm()
 	farm_panel.visible = true
 
@@ -351,5 +363,6 @@ func _on_farm_close_pressed() -> void:
 
 func _on_save_pressed() -> void:
 	var ok: bool = session.save_game()
-	status_label.text = "已保存" if ok else "保存失败"
 	_refresh_home()
+	var suffix := " · 已保存" if ok else " · 保存失败"
+	status_label.text += suffix
