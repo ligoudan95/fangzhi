@@ -121,6 +121,12 @@ custom_minimum_size = Vector2(0, 96)
 theme_override_font_sizes/font_size = 36
 text = "灵田"
 
+[node name="VillageButton" type="Button" parent="HomePanel/Actions"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 96)
+theme_override_font_sizes/font_size = 36
+text = "村落"
+
 [node name="SaveButton" type="Button" parent="HomePanel/Actions"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 96)
@@ -240,6 +246,15 @@ grow_horizontal = 2
 grow_vertical = 2
 visible = false
 
+[node name="VillageOverlay" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+
 [node name="VBox" type="VBoxContainer" parent="PetPanel"]
 layout_mode = 2
 theme_override_constants/separation = 20
@@ -272,6 +287,7 @@ text = "关闭"
 [connection signal="pressed" from="HomePanel/Actions/EquipButton" to="." method="_on_equip_pressed"]
 [connection signal="pressed" from="HomePanel/Actions/PetButton" to="." method="_on_pet_pressed"]
 [connection signal="pressed" from="HomePanel/Actions/FarmButton" to="." method="_on_farm_pressed"]
+[connection signal="pressed" from="HomePanel/Actions/VillageButton" to="." method="_on_village_pressed"]
 [connection signal="pressed" from="HomePanel/Actions/SaveButton" to="." method="_on_save_pressed"]
 [connection signal="pressed" from="PetPanel/VBox/PetClose" to="." method="_on_pet_close_pressed"]
 [connection signal="pressed" from="EquipPanel/VBox/EquipClose" to="." method="_on_equip_close_pressed"]

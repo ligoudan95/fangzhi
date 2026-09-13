@@ -1,0 +1,97 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/view/village_view.gd" id="1_village"]
+
+[node name="VillageView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_village")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch_mode = 6
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_right = 200.0
+offset_top = 20.0
+offset_bottom = 80.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 44
+text = "石岭村"
+horizontal_alignment = 1
+
+[node name="BuildingArea" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 100.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BuildingGrid" type="GridContainer" parent="BuildingArea"]
+layout_mode = 2
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 20
+columns = 4
+
+[node name="InfoPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -400.0
+offset_right = 300.0
+offset_bottom = -80.0
+grow_horizontal = 2
+grow_vertical = 0
+visible = false
+
+[node name="VBox" type="VBoxContainer" parent="InfoPanel"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="InfoTitle" type="Label" parent="InfoPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "建筑名"
+horizontal_alignment = 1
+
+[node name="InfoLevel" type="Label" parent="InfoPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "当前等级 0"
+horizontal_alignment = 1
+
+[node name="UpgradeButton" type="Button" parent="InfoPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 84)
+theme_override_font_sizes/font_size = 34
+text = "升级"
+
+[node name="CloseButton" type="Button" parent="InfoPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 72)
+theme_override_font_sizes/font_size = 30
+text = "关闭"
+
+[connection signal="pressed" from="InfoPanel/VBox/UpgradeButton" to="." method="_on_upgrade_pressed"]
+[connection signal="pressed" from="InfoPanel/VBox/CloseButton" to="." method="_on_close_pressed"]

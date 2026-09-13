@@ -36,6 +36,7 @@ var _close_timer: SceneTreeTimer
 @onready var farm_info: Label = $FarmPanel/VBox/FarmInfo
 @onready var farm_plant: Button = $FarmPanel/VBox/FarmPlant
 @onready var farm_skip: Button = $FarmPanel/VBox/FarmSkip
+@onready var village_overlay: Control = $VillageOverlay
 @onready var farm_close: Button = $FarmPanel/VBox/FarmClose
 
 
@@ -282,6 +283,26 @@ func _on_equip_close_pressed() -> void:
 
 
 # ---------- 灵田 ----------
+
+
+## 村落场景（docs/05 §2）：建筑网格 + 点击升级
+func _on_village_pressed() -> void:
+	for child in village_overlay.get_children():
+		village_overlay.remove_child(child)
+		child.free()
+	var village: Control = preload("res://scenes/village.tscn").instantiate()
+	village_overlay.add_child(village)
+	village.set_anchors_preset(Control.PRESET_FULL_RECT)
+	village.setup(session)
+	village_overlay.visible = true
+	# 关闭按钮由 main_view 统一提供
+	var back := Button.new()
+	back.text = "返回"
+	back.add_theme_font_size_override("font_size", 32)
+	back.custom_minimum_size = Vector2(160, 72)
+	back.position = Vector2(20, 20)
+	back.pressed.connect(func() -> void: village_overlay.visible = false)
+	village_overlay.add_child(back)
 
 
 func _on_farm_pressed() -> void:
