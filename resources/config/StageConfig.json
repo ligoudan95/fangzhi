@@ -82,5 +82,173 @@
   "power": 1800,
   "captureable": false,
   "boss": true
+ },
+ {
+  "stageId": 7,
+  "mapId": 3,
+  "order": 1,
+  "name": "赤炎谷·余烬小径",
+  "waves": [
+   7
+  ],
+  "dropId": 1,
+  "dropCount": 2,
+  "power": 2400,
+  "captureable": true,
+  "boss": false
+ },
+ {
+  "stageId": 8,
+  "mapId": 3,
+  "order": 2,
+  "name": "赤炎谷·火岩裂谷",
+  "waves": [
+   8
+  ],
+  "dropId": 2,
+  "dropCount": 1,
+  "power": 3000,
+  "captureable": true,
+  "boss": false
+ },
+ {
+  "stageId": 9,
+  "mapId": 3,
+  "order": 3,
+  "name": "赤炎谷·熔岩深渊",
+  "waves": [
+   9
+  ],
+  "dropId": 2,
+  "dropCount": 1,
+  "power": 3600,
+  "captureable": true,
+  "boss": false
+ },
+ {
+  "stageId": 10,
+  "mapId": 3,
+  "order": 4,
+  "name": "域主·火岩犼",
+  "waves": [
+   10
+  ],
+  "dropId": 3,
+  "dropCount": 1,
+  "power": 4500,
+  "captureable": false,
+  "boss": true
+ },
+ {
+  "stageId": 11,
+  "mapId": 4,
+  "order": 1,
+  "name": "雷鸣泽·雾岸",
+  "waves": [
+   11
+  ],
+  "dropId": 1,
+  "dropCount": 2,
+  "power": 5500,
+  "captureable": true,
+  "boss": false
+ },
+ {
+  "stageId": 12,
+  "mapId": 4,
+  "order": 2,
+  "name": "雷鸣泽·雷暴湖",
+  "waves": [
+   12
+  ],
+  "dropId": 2,
+  "dropCount": 1,
+  "power": 6800,
+  "captureable": true,
+  "boss": false
+ },
+ {
+  "stageId": 13,
+  "mapId": 4,
+  "order": 3,
+  "name": "雷鸣泽·电弧峡谷",
+  "waves": [
+   13
+  ],
+  "dropId": 3,
+  "dropCount": 1,
+  "power": 8000,
+  "captureable": true,
+  "boss": false
+ },
+ {
+  "stageId": 14,
+  "mapId": 4,
+  "order": 4,
+  "name": "雷鸣泽·啸月高地",
+  "waves": [
+   14
+  ],
+  "dropId": 3,
+  "dropCount": 1,
+  "power": 9500,
+  "captureable": false,
+  "boss": false
+ },
+ {
+  "stageId": 15,
+  "mapId": 4,
+  "order": 5,
+  "name": "域主·啸月狼",
+  "waves": [
+   15
+  ],
+  "dropId": 3,
+  "dropCount": 1,
+  "power": 11000,
+  "captureable": false,
+  "boss": true
+ },
+ {
+  "stageId": 16,
+  "mapId": 4,
+  "order": 6,
+  "name": "雷鸣泽·深层裂隙",
+  "waves": [
+   16
+  ],
+  "dropId": 4,
+  "dropCount": 1,
+  "power": 13000,
+  "captureable": false,
+  "boss": false
+ },
+ {
+  "stageId": 17,
+  "mapId": 4,
+  "order": 7,
+  "name": "雷鸣泽·雷狱",
+  "waves": [
+   17
+  ],
+  "dropId": 4,
+  "dropCount": 1,
+  "power": 15500,
+  "captureable": false,
+  "boss": false
+ },
+ {
+  "stageId": 18,
+  "mapId": 4,
+  "order": 8,
+  "name": "域主·太古雷蛟",
+  "waves": [
+   18
+  ],
+  "dropId": 5,
+  "dropCount": 2,
+  "power": 18000,
+  "captureable": false,
+  "boss": true
  }
 ]

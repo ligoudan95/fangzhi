@@ -69,8 +69,8 @@ func test_full_chapter_walkthrough() -> void:
 		s = QuestTracker.add_progress(s, int(e[0]), int(e[1]), int(e[2]), _quests).state
 	assert_bool(bool(s.completed.get("13", false))).is_true()
 	assert_int(int(s.chapterId)).is_equal(2)
-	assert_bool(QuestTracker.active_quest(s, _quests).is_empty()).is_true()
-	assert_int(int(s.claimedXiu)).is_equal(5400)
+	assert_bool(QuestTracker.active_quest(s, _quests).is_empty()).is_false()  # 第二章有节点（扩量后）
+	assert_int(int(s.claimedXiu)).is_equal(5800)  # 序章+第一章+第二章首剧情自动跳过（400）
 
 
 ## 幂等：同事件序列两次执行状态一致

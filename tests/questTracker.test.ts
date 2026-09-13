@@ -77,8 +77,8 @@ test('第一章全流程走查：13 节点按序完成至域主藤皇', () => {
   }
   assert.equal(s.completed[13], true);
   assert.equal(s.chapterId, 2);
-  assert.equal(activeQuest(s, quests), null);
-  assert.equal(s.claimedXiu, 5400);
+  assert.notEqual(activeQuest(s, quests), null);  // 第二章有节点（扩量后）
+  assert.equal(s.claimedXiu, 5800);  // 序章+第一章+第二章首剧情
 });
 
 test('幂等：同事件序列两次执行状态一致', () => {

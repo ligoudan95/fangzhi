@@ -148,7 +148,7 @@
 | 字段 | 类型 | 可见性 | 说明 |
 |---|---|---|---|
 | questId | `int` | `c` | 主键 |
-| chapterId | `int` | `c` | 章节0序章 |
+| chapterId | `int` | `c` | 章节 |
 | order | `int` | `c` | 顺序 |
 | nodeType | `enum<NodeType>` | `c` | 节点类型 |
 | title | `string` | `c` | 标题 |
@@ -243,7 +243,7 @@
 | 字段 | 类型 | 可见性 | 说明 |
 |---|---|---|---|
 | stageId | `int` | `c` | 主键 |
-| mapId | `int` | `c` | 地图1石岭村2黑风林 |
+| mapId | `int` | `c` | 地图1石岭村2黑风林3赤炎谷4雷鸣泽 |
 | order | `int` | `c` | 顺序 |
 | name | `string` | `c` | 关卡名 |
 | waves | `refs<EnemyGroup>` | `c` | 波次敌人组 |

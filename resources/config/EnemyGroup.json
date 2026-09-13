@@ -110,5 +110,269 @@
   "level": 15,
   "apt": 950,
   "strategy": "caster_first"
+ },
+ {
+  "groupId": 7,
+  "slot": 1,
+  "petId": 1005,
+  "level": 22,
+  "apt": 950,
+  "strategy": "random"
+ },
+ {
+  "groupId": 7,
+  "slot": 2,
+  "petId": 1005,
+  "level": 22,
+  "apt": 950,
+  "strategy": "random"
+ },
+ {
+  "groupId": 8,
+  "slot": 1,
+  "petId": 1005,
+  "level": 24,
+  "apt": 1000,
+  "strategy": "focus_weak"
+ },
+ {
+  "groupId": 8,
+  "slot": 2,
+  "petId": 1007,
+  "level": 23,
+  "apt": 950,
+  "strategy": "random"
+ },
+ {
+  "groupId": 9,
+  "slot": 1,
+  "petId": 1007,
+  "level": 26,
+  "apt": 1050,
+  "strategy": "focus_weak"
+ },
+ {
+  "groupId": 9,
+  "slot": 2,
+  "petId": 1005,
+  "level": 25,
+  "apt": 1000,
+  "strategy": "random"
+ },
+ {
+  "groupId": 9,
+  "slot": 3,
+  "petId": 1007,
+  "level": 25,
+  "apt": 1000,
+  "strategy": "caster_first"
+ },
+ {
+  "groupId": 10,
+  "slot": 1,
+  "petId": 1006,
+  "level": 30,
+  "apt": 1150,
+  "strategy": "focus_weak"
+ },
+ {
+  "groupId": 10,
+  "slot": 2,
+  "petId": 1007,
+  "level": 28,
+  "apt": 1050,
+  "strategy": "random"
+ },
+ {
+  "groupId": 10,
+  "slot": 3,
+  "petId": 1005,
+  "level": 27,
+  "apt": 1050,
+  "strategy": "caster_first"
+ },
+ {
+  "groupId": 11,
+  "slot": 1,
+  "petId": 1006,
+  "level": 34,
+  "apt": 1200,
+  "strategy": "random"
+ },
+ {
+  "groupId": 11,
+  "slot": 2,
+  "petId": 1006,
+  "level": 34,
+  "apt": 1200,
+  "strategy": "random"
+ },
+ {
+  "groupId": 12,
+  "slot": 1,
+  "petId": 1008,
+  "level": 38,
+  "apt": 1250,
+  "strategy": "focus_weak"
+ },
+ {
+  "groupId": 12,
+  "slot": 2,
+  "petId": 1008,
+  "level": 36,
+  "apt": 1200,
+  "strategy": "random"
+ },
+ {
+  "groupId": 12,
+  "slot": 3,
+  "petId": 1007,
+  "level": 36,
+  "apt": 1150,
+  "strategy": "caster_first"
+ },
+ {
+  "groupId": 13,
+  "slot": 1,
+  "petId": 1008,
+  "level": 40,
+  "apt": 1300,
+  "strategy": "focus_weak"
+ },
+ {
+  "groupId": 13,
+  "slot": 2,
+  "petId": 1008,
+  "level": 38,
+  "apt": 1250,
+  "strategy": "random"
+ },
+ {
+  "groupId": 13,
+  "slot": 3,
+  "petId": 1006,
+  "level": 37,
+  "apt": 1200,
+  "strategy": "caster_first"
+ },
+ {
+  "groupId": 14,
+  "slot": 1,
+  "petId": 1010,
+  "level": 44,
+  "apt": 1350,
+  "strategy": "focus_weak"
+ },
+ {
+  "groupId": 14,
+  "slot": 2,
+  "petId": 1010,
+  "level": 42,
+  "apt": 1300,
+  "strategy": "random"
+ },
+ {
+  "groupId": 14,
+  "slot": 3,
+  "petId": 1008,
+  "level": 42,
+  "apt": 1250,
+  "strategy": "caster_first"
+ },
+ {
+  "groupId": 15,
+  "slot": 1,
+  "petId": 1010,
+  "level": 48,
+  "apt": 1400,
+  "strategy": "focus_weak"
+ },
+ {
+  "groupId": 15,
+  "slot": 2,
+  "petId": 1011,
+  "level": 46,
+  "apt": 1350,
+  "strategy": "random"
+ },
+ {
+  "groupId": 15,
+  "slot": 3,
+  "petId": 1010,
+  "level": 46,
+  "apt": 1350,
+  "strategy": "caster_first"
+ },
+ {
+  "groupId": 16,
+  "slot": 1,
+  "petId": 1011,
+  "level": 52,
+  "apt": 1450,
+  "strategy": "focus_weak"
+ },
+ {
+  "groupId": 16,
+  "slot": 2,
+  "petId": 1011,
+  "level": 50,
+  "apt": 1400,
+  "strategy": "random"
+ },
+ {
+  "groupId": 16,
+  "slot": 3,
+  "petId": 1010,
+  "level": 50,
+  "apt": 1400,
+  "strategy": "caster_first"
+ },
+ {
+  "groupId": 17,
+  "slot": 1,
+  "petId": 1011,
+  "level": 56,
+  "apt": 1500,
+  "strategy": "focus_weak"
+ },
+ {
+  "groupId": 17,
+  "slot": 2,
+  "petId": 1011,
+  "level": 54,
+  "apt": 1450,
+  "strategy": "random"
+ },
+ {
+  "groupId": 17,
+  "slot": 3,
+  "petId": 1010,
+  "level": 54,
+  "apt": 1450,
+  "strategy": "caster_first"
+ },
+ {
+  "groupId": 18,
+  "slot": 1,
+  "petId": 1012,
+  "level": 60,
+  "apt": 1550,
+  "strategy": "focus_weak"
+ },
+ {
+  "groupId": 18,
+  "slot": 2,
+  "petId": 1011,
+  "level": 58,
+  "apt": 1500,
+  "strategy": "random"
+ },
+ {
+  "groupId": 18,
+  "slot": 3,
+  "petId": 1012,
+  "level": 58,
+  "apt": 1500,
+  "strategy": "caster_first"
  }
 ]
