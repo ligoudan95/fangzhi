@@ -7,6 +7,9 @@ extends Control
 ## 战斗回放完成（正常/跳过均恰好一次，随结果横幅首显发出）；result 为 BattleResult 字典
 signal battle_finished(result: Dictionary)
 
+## 窗口适配器（docs/10 §12）：独立运行时接管窗口
+const WINDOW_FIT: GDScript = preload("res://scripts/view/window_fit.gd")
+
 ## 演示阵容：灰岩獒(坦) + 桃夭狐(疗) + 朱羽雉(输出)，与对拍场景一致
 const TEAM: Array = [[1001, 12, 900, 1], [1002, 12, 900, 1], [1005, 12, 950, 1]]
 ## 五行属性色（docs/10 §2.1）：占位贴图着色，正式立绘到位后替换
@@ -20,16 +23,12 @@ const ELEMENT_COLORS: Dictionary = {
 	7: Color("#F5E7B8")
 }
 
-## 窗口宽高比（竖屏 9:16）：任意拖拽后吸附回该比例，内容等比满幅
-const WINDOW_ASPECT := 9.0 / 16.0
-
 var _seed: int = 0
 var _playback: BattlePlayback
 var _events_playback: BattleEventPlayback
 var _last_result: Dictionary = {}
 var _actor_by_uid: Dictionary = {}
 var _number_pool: Array[Label] = []
-var _snapping := false
 var _number_seq := 0
 var _battlefield_origin := Vector2.ZERO
 var _battlefield_origin_valid := false
@@ -67,54 +66,19 @@ func _sfx(path: String) -> void:
 		audio.play_sfx(path)
 
 
-## 桌面窗口自适应：任意拖拽后吸附回 9:16（宽:高），内容等比满幅；
-## 初始位置按可用工作区（扣任务栏）精确居中。headless 无窗口语义，跳过。
+## 桌面窗口自适应：仅独立运行（battle.tscn 直接作为主场景/直挂根）时接管窗口；
+## 作为主场景战斗覆盖层嵌入时不碰窗口（入口场景已全局接管，docs/10 §12）。
 func _setup_window() -> void:
-	if DisplayServer.get_name() == "headless":
+	if DisplayServer.get_name() == "headless" or not _is_standalone():
 		return
-	var win := get_window()
-	win.min_size = Vector2i(324, 576)
-	win.size = Vector2i(594, 1056)
-	win.size_changed.connect(_snap_window_aspect)
-	_center_window()
+	WINDOW_FIT.setup(get_window())
 
 
-func _center_window() -> void:
-	await get_tree().process_frame
-	var win := get_window()
-	var usable := DisplayServer.screen_get_usable_rect(win.current_screen)
-	var pos := usable.position + (usable.size - win.size) / 2
-	win.position = Vector2i(pos)
-	_clamp_window_into_workarea(win, usable)
-
-
-## 滞回吸附：偏差 >2px 才纠正，防 resize 事件自激；尺寸与位置均钳入工作区（防底边出屏裁内容）
-func _snap_window_aspect() -> void:
-	if _snapping:
-		return
-	_snapping = true
-	var win := get_window()
-	if win.mode == Window.MODE_MAXIMIZED or win.mode == Window.MODE_FULLSCREEN:
-		_snapping = false
-		return
-	var size := win.size
-	var usable := DisplayServer.screen_get_usable_rect(win.current_screen)
-	var target_h := int(round(float(size.x) / WINDOW_ASPECT))
-	target_h = mini(target_h, usable.size.y - 16)
-	if absi(target_h - size.y) > 2:
-		var target_w := int(round(float(target_h) * WINDOW_ASPECT))
-		win.size = Vector2i(maxi(324, target_w), maxi(576, target_h))
-	_clamp_window_into_workarea(win, usable)
-	_snapping = false
-
-
-func _clamp_window_into_workarea(win: Window, usable: Rect2i) -> void:
-	var pos := win.position
-	pos.y = mini(pos.y, usable.position.y + usable.size.y - win.size.y)
-	pos.y = maxi(pos.y, usable.position.y)
-	pos.x = mini(pos.x, usable.position.x + usable.size.x - win.size.x)
-	pos.x = maxi(pos.x, usable.position.x)
-	win.position = pos
+func _is_standalone() -> bool:
+	var node: Node = self
+	while node.get_parent() != null and node.get_parent() != get_tree().root:
+		node = node.get_parent()
+	return node == self
 
 
 func _process(delta: float) -> void:

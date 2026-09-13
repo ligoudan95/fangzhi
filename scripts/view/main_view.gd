@@ -6,6 +6,8 @@ extends Control
 
 const GAME_SESSION_SCRIPT: GDScript = preload("res://scripts/view/game_session.gd")
 const BATTLE_SCENE: PackedScene = preload("res://scenes/battle.tscn")
+## 窗口适配器（docs/10 §12）：入口场景全局接管
+const WINDOW_FIT: GDScript = preload("res://scripts/view/window_fit.gd")
 
 ## FTUE 演示队伍（docs/16 序章教学）：坦/疗/输出
 const FTUE_TEAM: Array = [[1001, 12, 900, 1], [1002, 12, 900, 1], [1005, 12, 950, 1]]
@@ -50,6 +52,8 @@ func _ready() -> void:
 	_tables = session._tables
 	_cfg = BattleSetup.build_cfg(_tables)
 	_apply_panel_styles()
+	# 入口场景全局接管窗口：任意尺寸保持 9:16 自适应（docs/10 §12）
+	WINDOW_FIT.setup(get_window())
 	_show_title()
 
 
