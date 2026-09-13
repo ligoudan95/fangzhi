@@ -250,8 +250,9 @@ func _on_capture(e: Dictionary) -> void:
 	banner.add_theme_font_size_override("font_size", 44 if ok else 30)
 	banner.add_theme_color_override("font_color", Color("#F0923C") if ok else Color("#D8D8D8"))
 	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	banner.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	banner.position = Vector2(290, 640)
+	# 满幅居中横幅：宽取整画布 1080，避免锚点/硬编码坐标在安全区边距下偏移
+	banner.position = Vector2(0, 640)
+	banner.size = Vector2(1080, 60)
 	number_layer.add_child(banner)
 	var tween := banner.create_tween()
 	tween.set_parallel(true)
@@ -392,10 +393,11 @@ func _spawn_number(uid: int, text: String, color: Color, font_size: int) -> void
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	label.modulate.a = 1.0
-	# 确定性散开：按 uid 哈希偏移防多数字完全重叠（不引入随机流，docs/15 §3.5）
+	# 确定性散开：横向哈希偏移 + 纵向按序三行错层，防同目标连击数字叠字（不引入随机流，docs/15 §3.5）
 	_number_seq += 1
 	var jitter := Vector2(
-		float((uid * 13 + _number_seq * 7) % 54) - 27.0, float((uid * 7 + _number_seq * 11) % 14)
+		float((uid * 13 + _number_seq * 7) % 54) - 27.0,
+		float((uid * 7 + _number_seq * 11) % 14) + float((_number_seq % 3) * 26.0)
 	)
 	if slot != null:
 		label.position = slot.global_position + Vector2(slot.size.x * 0.5 - 80.0, -36.0) + jitter
